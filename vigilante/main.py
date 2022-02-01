@@ -1,14 +1,9 @@
 #! /usr/bin/env python3
 import json
-import requests
-from dataclasses import dataclass, field
-import settings
-import time
 
-import alerts
 from watcheduser import WatchedUser
 from alerts import TokenAlertLog as Log
-
+import alerts
 
 # if watched_user had activity on etherscan:
 #   for each account in watched_user:
@@ -18,44 +13,6 @@ from alerts import TokenAlertLog as Log
 #       - price
 # compare with previous
 # save
-
-# def update_file():
-#     with open('my_file.json', 'r') as f:
-#         json_data = json.load(f)
-#         json_data['b'] = "9"
-#
-#     with open('my_file.json', 'w') as f:
-#         f.write(json.dumps(json_data))
-
-
-def _has_min_token_balance(token: json):
-    return token['amount'] * token['price'] >= settings.MIN_TOKEN_BALANCE
-
-
-def _get_account_usd_balance(account):
-    balance = requests.get(settings.DEBANK_ACCOUNT_BALANCE_URL.format(address=account)).json()["total_usd_value"]
-    return int(balance)
-
-
-def request_token_list(account):
-    # print("Requesting data from Debank...")
-    return requests.get(settings.DEBANK_TOKEN_LIST_URL.format(address=account))
-
-
-def update_balances_file(user_alias: str, user_holdings: dict):
-    with open(settings.WALLETS_BALANCE_FILE, "w") as f:
-        print("Updating file...")
-        json.dump(user_holdings, f)
-
-
-def get_balances_from_file(user_alias: str) -> dict:
-    with open(settings.WALLETS_BALANCE_FILE, "r") as f:
-        return json.load(f)
-
-
-def compare_last_balances_with_prev(user_alias, current_holdings):
-    prev = get_balances_from_file(user_alias)
-
 
 def main():
     with open("watched_accounts.json", "r") as watched_accounts_file:
@@ -69,8 +26,17 @@ def main():
     for watched_user in watched_accounts:
         watched_user.watch()
 
+    # TODO: alerts don't go here, just for testing
+    Log.add(alerts.ChangedAlert(
+        user_alias="Whale 1",
+        chain_id="eth",
+        symbol="ETH",
+        amount_initial="1",
+        amount_final="9")
+    )
     Log.log()
 
+    # for testing:
     # tokens = {
     #     "tokens_by_chain": {
     #         "eth": {

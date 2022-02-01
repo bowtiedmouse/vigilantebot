@@ -40,16 +40,11 @@ class WatchedUser:
         # todo: should be async
         # while True:
         if self.has_updates():
+            # 1. Get updated balances data
             self.update()
-            # compare()
-            # TODO: alerts don't go here, just for testing
-            Log.add(alerts.ChangedAlert(
-                user_alias="Whale 1",
-                chain_id="eth",
-                symbol="ETH",
-                amount_initial="1",
-                amount_final="9")
-            )
+            # 2. Compare with previously saved data
+            utils.compare_last_balances_with_prev(self.alias, self.holdings)
+            # 3. Update saved data
             utils.update_balances_file(self.alias, self.holdings)
             # time.sleep(10 * 60)
 
@@ -59,7 +54,7 @@ class WatchedUser:
         for account in self.address:
             tokens = utils.request_token_list(account)
             self.process_token_list(tokens.json())
-            self.usd_balance += utils._get_account_usd_balance(account)
+            self.usd_balance += utils.get_account_usd_balance(account)
 
     def process_token_list(self, tokens):
         """Simplifies request's returned object by getting only needed data and
@@ -69,7 +64,7 @@ class WatchedUser:
         tokens_by_chain = self.holdings["tokens_by_chain"]
 
         for token in tokens:
-            if not utils._has_min_token_balance(token):
+            if not utils.has_min_token_balance(token):
                 continue
 
             chain_id = token["chain"].lower()
@@ -95,7 +90,7 @@ class WatchedUser:
         self.holdings["alias"] = self.alias
         # self.token_list["usd_balance"] = self._get_account_balance(tokens)
         for token in tokens:
-            if not utils._has_min_token_balance(token):
+            if not utils.has_min_token_balance(token):
                 continue
 
             if token["chain"] != last_chain:
