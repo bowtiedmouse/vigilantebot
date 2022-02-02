@@ -1,6 +1,6 @@
-[
-  {
-    "alias": "Whale",
+{
+  "Whale 1": {
+    "alias": "Whale 1",
     "usd_balance": "6568",
     "last_active": "1684984984",
     "tokens_by_chain": {
@@ -13,5 +13,20 @@
         "MAGIC": "1232"
       }
     }
+  },
+  "2nd Whale": {
+    "alias": "2nd Whale",
+    "usd_balance": "1668",
+    "last_active": "1684984984",
+    "tokens_by_chain": {
+      "eth": {
+        "ETH": "1.223",
+        "WILD": "232"
+      },
+      "arb": {
+        "ETH": "1.223",
+        "MAGIC": "1232"
+      }
+    }
   }
-]
+}
