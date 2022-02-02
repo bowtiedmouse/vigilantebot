@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
 import json
 
-from watcheduser import WatchedUser
+import settings
+from target import Target
 from alerts import TokenAlertLog as Log
 import alerts
 
@@ -15,16 +16,16 @@ import alerts
 # save
 
 def main():
-    with open("watched_accounts.json", "r") as watched_accounts_file:
-        watched_accounts_data = json.load(watched_accounts_file)
+    with open(settings.TARGET_ACCOUNTS_FILE, "r") as f:
+        target_accounts_data = json.load(f)
 
-    watched_accounts = [
-        WatchedUser(user["alias"], user["address"])
-        for user in watched_accounts_data
+    targets = [
+        Target(user["alias"], user["address"])
+        for user in target_accounts_data
     ]
 
-    for watched_user in watched_accounts:
-        watched_user.watch()
+    for target in targets:
+        target.watch()
 
     # TODO: alerts don't go here, just for testing
     Log.add(alerts.ChangedAlert(

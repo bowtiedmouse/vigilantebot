@@ -19,7 +19,7 @@ from alerts import TokenAlertLog as Log
 #   No need for updating the file: just load it in memory, compare with response, and dump the new data
 
 @dataclass
-class WatchedUser:
+class Target:
     # todo: reconsider properties and methods to avoid overload
     alias: str
     address: list
