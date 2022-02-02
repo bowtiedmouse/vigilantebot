@@ -13,8 +13,22 @@ class SortableAlert(Protocol):
     def log(self) -> None:
         pass
 
-    def add(self, alert) -> None:
-        pass
+
+@dataclass
+class USDBalanceAlert:
+    target_alias: str
+    balance: int = field(compare=False)
+    priority: int = field(init=False, repr=False)
+    chain_id: str = field(init=False, repr=False, default="")
+    msg: str = field(init=False, compare=False, repr=False)
+
+    def __post_init__(self):
+        self.priority = 5
+        self.msg = (f"Total USD balance for {self.target_alias}: "
+                    f"${'{:,}'.format(self.balance)}")
+
+    def log(self) -> None:
+        pprint(self)
 
 
 @dataclass(order=True)
@@ -32,12 +46,8 @@ class TokenBalanceAlert:
     msg: str = field(init=False, compare=False)
 
     @staticmethod
-    def log():
-        print(_log)
-
-    @staticmethod
-    def add(alert: str):
-        _log.append(alert)
+    def log(self) -> None:
+        pprint(self)
 
 
 @dataclass
@@ -49,7 +59,7 @@ class RemovedAlert(TokenBalanceAlert):
     amount: str = field(repr=False)
 
     def __post_init__(self):
-        self.priority = 1
+        self.priority = 10
         self.msg = (f"Token removed from account: {self.symbol}. "
                     f"Previous balance: {self.amount}")
 
@@ -63,7 +73,7 @@ class AddedAlert(TokenBalanceAlert):
     amount: str = field(repr=False, compare=False)
 
     def __post_init__(self):
-        self.priority = 2
+        self.priority = 20
         self.msg = f"New token on account: {self.symbol}. Balance: {self.amount}"
 
 
@@ -77,7 +87,7 @@ class ChangedAlert(TokenBalanceAlert):
     amount_final: str = field(repr=False, compare=False)
 
     def __post_init__(self):
-        self.priority = 3
+        self.priority = 30
         self.msg = (f"Change in balance for token {self.symbol}: "
                     f"from {self.amount_initial} to {self.amount_final}")
 
@@ -114,9 +124,24 @@ def log_target_holdings_changes(target_alias: str, diff: dict) -> None:
     :param diff: DeepDiff dictionary result
     :return: None
     """
-    _log_diff_results(target_alias, diff['dictionary_item_removed'], action="removed")
-    _log_diff_results(target_alias, diff['dictionary_item_added'], action="added")
-    _log_diff_results(target_alias, diff['values_changed'], action="changed")
+    if 'dictionary_item_removed' in diff:
+        _log_diff_results(target_alias, diff['dictionary_item_removed'],
+                          action="removed")
+    if 'dictionary_item_added' in diff:
+        _log_diff_results(target_alias, diff['dictionary_item_added'], action="added")
+    if 'values_changed' in diff:
+        _log_diff_results(target_alias, diff['values_changed'], action="changed")
+
+
+def log_target_usd_balance(target_alias: str, balance: float) -> None:
+    """
+    Adds the current USD balance of a target account to the logs.
+
+    :param target_alias: target alias
+    :param balance: USD balance
+    :return: None
+    """
+    AlertLog.add(USDBalanceAlert(target_alias, balance))
 
 
 def _log_diff_results(target_alias: str, diff_results: dict, action: str):
@@ -153,6 +178,8 @@ def _log_diff_results(target_alias: str, diff_results: dict, action: str):
 
 
 def _add_alert(action: str, target_alias: str, chain_id: str, symbol: str, amount):
+    assert action in {'removed', 'added', 'changed'}, "Wrong action supplied."
+
     if action == "removed":
         AlertLog.add(RemovedAlert(target_alias, chain_id, symbol, amount))
 
