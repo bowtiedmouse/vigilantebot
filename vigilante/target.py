@@ -1,12 +1,11 @@
-import json
-import requests
-from dataclasses import dataclass, field
-import settings
 import time
-import utils
+from dataclasses import dataclass, field
+
+import settings
+import holdings
+import compare_holdings as compare
 import alerts
 from alerts import TokenAlertLog as Log
-
 
 # On object init: check if exists on file?
 # 0- check timestamp of last tx and compare with user last_active in file
@@ -17,6 +16,7 @@ from alerts import TokenAlertLog as Log
 
 #   Note: a different in a token balance could mean he's staking/unstaking it or claiming
 #   No need for updating the file: just load it in memory, compare with response, and dump the new data
+
 
 @dataclass
 class Target:
@@ -43,18 +43,18 @@ class Target:
             # 1. Get updated balances data
             self.update()
             # 2. Compare with previously saved data
-            utils.compare_last_balances_with_prev(self.alias, self.holdings)
+            compare.compare_target_last_holdings_with_prev(self.alias, self.holdings)
             # 3. Update saved data
-            utils.update_balances_file(self.alias, self.holdings)
+            holdings.update_holdings_file(self.alias, self.holdings)
             # time.sleep(10 * 60)
 
     def update(self):
         # print(f"\nBalances for {self.alias}:")
         # print("===========================")
         for account in self.address:
-            tokens = utils.request_token_list(account)
+            tokens = holdings.request_token_list(account)
             self.process_token_list(tokens.json())
-            self.usd_balance += utils.get_account_usd_balance(account)
+            self.usd_balance += holdings.get_account_usd_balance(account)
 
     def process_token_list(self, tokens):
         """Simplifies request's returned object by getting only needed data and
@@ -64,7 +64,7 @@ class Target:
         tokens_by_chain = self.holdings["tokens_by_chain"]
 
         for token in tokens:
-            if not utils.has_min_token_balance(token):
+            if not holdings.has_min_token_balance(token):
                 continue
 
             chain_id = token["chain"].lower()
@@ -90,7 +90,7 @@ class Target:
         self.holdings["alias"] = self.alias
         # self.token_list["usd_balance"] = self._get_account_balance(tokens)
         for token in tokens:
-            if not utils.has_min_token_balance(token):
+            if not holdings.has_min_token_balance(token):
                 continue
 
             if token["chain"] != last_chain:
