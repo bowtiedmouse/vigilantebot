@@ -2,6 +2,7 @@ import json
 import requests
 
 import settings
+import fileutils
 
 
 def has_min_token_balance(token: json):
@@ -11,7 +12,7 @@ def has_min_token_balance(token: json):
     return token['amount'] * token['price'] >= settings.MIN_TOKEN_BALANCE
 
 
-def get_account_usd_balance(account):
+def get_account_usd_balance(account) -> int:
     """
     Gets current account's USD value from Debank API.
     """
@@ -19,28 +20,31 @@ def get_account_usd_balance(account):
         settings.DEBANK_ACCOUNT_BALANCE_URL.format(address=account)
     ).json()["total_usd_value"]
 
-    return int(balance)
+    return int(round(balance, 0))
 
 
-def get_token_holdings(target_account: str) -> dict:
+def get_token_holdings(target_account: str, target_holdings) -> dict:
     token_list = _request_token_list(target_account).json()
-    return _process_token_list(token_list)
+    return _process_token_list(target_holdings, token_list)
 
 
-def update_holdings_file(user_alias: str, user_holdings: dict):
-    # todo: only updates current user
-    with open(settings.WALLETS_BALANCE_FILE, "w") as f:
-        print("Updating file...")
-        json.dump(user_holdings, f)
-
-
-def get_holdings_from_file(user_alias: str) -> dict:
+def get_holdings_from_file(target_alias: str) -> dict:
     """
     Gets the last saved data for a user.
     """
-    # todo: only get provided user
-    with open(settings.WALLETS_BALANCE_FILE, "r") as f:
-        return json.load(f)
+    return fileutils.get_file_key_content(settings.TARGETS_HOLDINGS_FILE, target_alias)
+
+
+def update_holdings_file(target_alias: str, target_holdings: dict,
+                         usd_balance: int = 0):
+    """
+    Updates the json file with target data.
+    """
+    if usd_balance:
+        fileutils.update_file_key(settings.TARGETS_HOLDINGS_FILE, target_alias,
+                                  'usd_balance', usd_balance)
+    fileutils.update_file_key(settings.TARGETS_HOLDINGS_FILE, target_alias,
+                              'tokens_by_chain', target_holdings)
 
 
 def _request_token_list(account) -> requests.Response:
@@ -50,12 +54,11 @@ def _request_token_list(account) -> requests.Response:
     return requests.get(settings.DEBANK_TOKEN_LIST_URL.format(address=account))
 
 
-def _process_token_list(tokens: dict) -> dict:
+def _process_token_list(target_holdings_by_chain: dict, tokens: dict) -> dict:
     """
     Simplifies request's returned object by getting only needed data and
     adding up token balances from several user's accounts.
     """
-    tokens_by_chain = {}
     for token in tokens:
         if not has_min_token_balance(token):
             continue
@@ -64,11 +67,11 @@ def _process_token_list(tokens: dict) -> dict:
         symbol = token["symbol"].upper()
         amount = token["amount"]
 
-        if chain_id not in tokens_by_chain:
-            tokens_by_chain[chain_id] = {}
+        if chain_id not in target_holdings_by_chain:
+            target_holdings_by_chain[chain_id] = {}
 
-        if symbol in tokens_by_chain[chain_id]:
-            amount += float(tokens_by_chain[chain_id][symbol])
-        tokens_by_chain[chain_id][symbol] = str(amount)
+        if symbol in target_holdings_by_chain[chain_id]:
+            amount += float(target_holdings_by_chain[chain_id][symbol])
+        target_holdings_by_chain[chain_id][symbol] = str(amount)
 
-    return tokens_by_chain
+    return target_holdings_by_chain
