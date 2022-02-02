@@ -1,5 +1,5 @@
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import holdings
 import compare
@@ -25,47 +25,39 @@ class Target:
     """
     alias: str
     addresses: list
-    holdings: dict = field(init=False, default_factory=dict)
-    # usd_balance: int = field(init=False, default=0)
-    # last_active: int = field(init=False, default=0)
 
-    def __post_init__(self):
-        self.holdings = {
-            "alias": self.alias,
-            # "usd_balance": self.usd_balance,
-            # "last_active": self.last_active,
-            "tokens_by_chain": {}
-        }
-
-    def watch(self):
+    def watch(self) -> None:
         # todo: should be async
         # while True:
-        # if self.has_updates():
         # 1. Get updated balances data
-        self.update_holdings()
+        holdings_by_chain = self.get_updated_holdings()
         # 2. Compare with previously saved data
-        changes = compare.get_target_holdings_changes(self.alias, self.holdings)
+        changes = compare.get_target_holdings_changes(self.alias, holdings_by_chain)
+        usd_balance = self.get_usd_balance()
         # 4. Add differences to the log
         alerts.log_target_holdings_changes(self.alias, changes)
+        alerts.log_target_usd_balance(self.alias, usd_balance)
         # 3. Update saved data
-        # holdings.update_holdings_file(self.alias, self.holdings)
+        holdings.update_holdings_file(self.alias, holdings_by_chain, usd_balance)
         # time.sleep(settings.WATCH_FREQUENCY)
 
-    def update_holdings(self):
+    def get_updated_holdings(self) -> dict:
+        """
+        Gets last updated aggregated holdings for all the accounts of a target.
+
+        :return: dict
+        """
+        holdings_by_chain = {}
         for account in self.addresses:
-            self.holdings['tokens_by_chain'] = holdings.get_token_holdings(account)
-            # todo: usd_balance probably not needed here
-            # self.usd_balance += holdings.get_account_usd_balance(account)
+            holdings_by_chain = holdings.get_token_holdings(account, holdings_by_chain)
+        return holdings_by_chain
 
-    # todo: if don't use has_updates, this will be gone
-    def get_last_active(self):
+    def get_usd_balance(self) -> int:
         """
-        Check for watching file, get user's last_active timestamp.
-        """
+        Gets the total USD balance of all the accounts of a target.
 
-    # todo: probably not needed: would be easier to just request holdings every time
-    def has_updates(self):
+        :return: int
         """
-        Compares last_active from get_last_active with etherscan/ftmscan/arbiscan/avax last tx.
-        """
-        return True
+        return sum(
+            holdings.get_account_usd_balance(account) for account in self.addresses
+        )
