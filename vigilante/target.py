@@ -1,11 +1,10 @@
 import time
 from dataclasses import dataclass, field
 
-import settings
 import holdings
-import compare_holdings as compare
+import compare
 import alerts
-from alerts import TokenAlertLog as Log
+
 
 # On object init: check if exists on file?
 # 0- check timestamp of last tx and compare with user last_active in file
@@ -14,98 +13,59 @@ from alerts import TokenAlertLog as Log
 # 3- log differences
 # 4- update file
 
-#   Note: a different in a token balance could mean he's staking/unstaking it or claiming
-#   No need for updating the file: just load it in memory, compare with response, and dump the new data
+# Note: a different in a token balance could mean he's staking/unstaking it or claiming
+# No need for updating the file: just load it in memory, compare with response, and dump
+#   the new data
 
 
 @dataclass
 class Target:
-    # todo: reconsider properties and methods to avoid overload
+    """
+    Represents a user that is being watched.
+    """
     alias: str
-    address: list
+    addresses: list
     holdings: dict = field(init=False, default_factory=dict)
-    usd_balance: int = field(init=False, default=0)
-    last_active: int = field(init=False, default=0)
-    token_updates: dict = field(init=False, default_factory=dict)
+    # usd_balance: int = field(init=False, default=0)
+    # last_active: int = field(init=False, default=0)
 
     def __post_init__(self):
         self.holdings = {
             "alias": self.alias,
-            "usd_balance": self.usd_balance,
-            "last_active": self.last_active,
+            # "usd_balance": self.usd_balance,
+            # "last_active": self.last_active,
             "tokens_by_chain": {}
         }
 
     def watch(self):
         # todo: should be async
         # while True:
-        if self.has_updates():
-            # 1. Get updated balances data
-            self.update()
-            # 2. Compare with previously saved data
-            compare.compare_target_last_holdings_with_prev(self.alias, self.holdings)
-            # 3. Update saved data
-            holdings.update_holdings_file(self.alias, self.holdings)
-            # time.sleep(10 * 60)
+        # if self.has_updates():
+        # 1. Get updated balances data
+        self.update_holdings()
+        # 2. Compare with previously saved data
+        changes = compare.get_target_holdings_changes(self.alias, self.holdings)
+        # 4. Add differences to the log
+        alerts.log_target_holdings_changes(self.alias, changes)
+        # 3. Update saved data
+        # holdings.update_holdings_file(self.alias, self.holdings)
+        # time.sleep(settings.WATCH_FREQUENCY)
 
-    def update(self):
-        # print(f"\nBalances for {self.alias}:")
-        # print("===========================")
-        for account in self.address:
-            tokens = holdings.request_token_list(account)
-            self.process_token_list(tokens.json())
-            self.usd_balance += holdings.get_account_usd_balance(account)
+    def update_holdings(self):
+        for account in self.addresses:
+            self.holdings['tokens_by_chain'] = holdings.get_token_holdings(account)
+            # todo: usd_balance probably not needed here
+            # self.usd_balance += holdings.get_account_usd_balance(account)
 
-    def process_token_list(self, tokens):
-        """Simplifies request's returned object by getting only needed data and
-        merging tokens balances from different user's accounts.
-        """
-        # print("Processing data...")
-        tokens_by_chain = self.holdings["tokens_by_chain"]
-
-        for token in tokens:
-            if not holdings.has_min_token_balance(token):
-                continue
-
-            chain_id = token["chain"].lower()
-            symbol = token["symbol"].upper()
-            amount = token["amount"]
-
-            if chain_id not in tokens_by_chain:
-                tokens_by_chain[chain_id] = {}
-
-            if symbol in tokens_by_chain[chain_id]:
-                # print(f"Merging {symbol} from {tokens_by_chain[chain_id][symbol]} with {amount}")
-                amount += float(tokens_by_chain[chain_id][symbol])
-            tokens_by_chain[chain_id][symbol] = str(amount)
-
-        self.holdings["tokens_by_chain"] = tokens_by_chain
-
-    # deprecated?
-    def print_tokens(self, account_tokens):
-        tokens = account_tokens.json()
-        last_chain = tokens[0]["chain"]
-        print(f"Tokens on {last_chain.title()}:")
-
-        self.holdings["alias"] = self.alias
-        # self.token_list["usd_balance"] = self._get_account_balance(tokens)
-        for token in tokens:
-            if not holdings.has_min_token_balance(token):
-                continue
-
-            if token["chain"] != last_chain:
-                last_chain = token["chain"]
-                print(f"Tokens on {last_chain.title()}:")
-            print(f"· {token['amount']} of {token['symbol']}")
-        #       by chain:
-        #       - symbol
-        #       - amount
-        #       - price
-
+    # todo: if don't use has_updates, this will be gone
     def get_last_active(self):
-        """Check for watching file, get user's last_active timestamp"""
+        """
+        Check for watching file, get user's last_active timestamp.
+        """
 
+    # todo: probably not needed: would be easier to just request holdings every time
     def has_updates(self):
-        """Compares last_active from get_last_active with etherscan/ftmscan/arbiscan/avax last tx"""
+        """
+        Compares last_active from get_last_active with etherscan/ftmscan/arbiscan/avax last tx.
+        """
         return True
-
