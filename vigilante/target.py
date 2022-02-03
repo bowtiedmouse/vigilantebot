@@ -64,7 +64,6 @@ class Target:
 
     def _update_file(self, updated_holdings: dict, usd_balance: int) -> None:
         holdings.update_holdings_file(self.alias, updated_holdings, usd_balance)
-        print("updated")
 
     def _save_new_target(self, usd_balance: int, updated_holdings: dict):
         alerts.log_new_target(self.alias, usd_balance, updated_holdings)
