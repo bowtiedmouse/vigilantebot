@@ -1,18 +1,26 @@
+#
+#   Functions to interact with the holdings saved data and compare it with updated
+#   data from the blockchain
+#
 import json
+import os.path
+
 import requests
+
+from deepdiff import DeepDiff
 
 import settings
 import fileutils
 
 
-def has_min_token_balance(token: json):
+def has_min_token_balance(token: json) -> bool:
     """
     Avoids including dust left in the wallet.
     """
     return token['amount'] * token['price'] >= settings.MIN_TOKEN_BALANCE
 
 
-def get_account_usd_balance(account) -> int:
+def get_account_usd_balance(account: str) -> int:
     """
     Gets current account's USD value from Debank API.
     """
@@ -23,7 +31,21 @@ def get_account_usd_balance(account) -> int:
     return int(round(balance, 0))
 
 
-def get_token_holdings(target_account: str, target_holdings) -> dict:
+def holdings_file_exists() -> bool:
+    return os.path.isfile(settings.TARGETS_HOLDINGS_FILE)
+
+
+def create_holdings_file() -> None:
+    fileutils.create_empty_json_file(settings.TARGETS_HOLDINGS_FILE)
+    print(f"Created file: {settings.TARGETS_HOLDINGS_FILE}")
+
+
+def is_target_in_file(target_alias: str) -> bool:
+    return {} != fileutils.get_file_key_content(settings.TARGETS_HOLDINGS_FILE,
+                                                target_alias)
+
+
+def get_token_holdings(target_account: str, target_holdings: dict) -> dict:
     token_list = _request_token_list(target_account).json()
     return _process_token_list(target_holdings, token_list)
 
@@ -32,7 +54,8 @@ def get_holdings_from_file(target_alias: str) -> dict:
     """
     Gets the last saved data for a user.
     """
-    return fileutils.get_file_key_content(settings.TARGETS_HOLDINGS_FILE, target_alias)
+    return fileutils.get_file_key_content(settings.TARGETS_HOLDINGS_FILE, target_alias,
+                                          'tokens_by_chain')
 
 
 def update_holdings_file(target_alias: str, target_holdings: dict,
@@ -42,9 +65,35 @@ def update_holdings_file(target_alias: str, target_holdings: dict,
     """
     if usd_balance:
         fileutils.update_file_key(settings.TARGETS_HOLDINGS_FILE, target_alias,
-                                  'usd_balance', usd_balance)
+                                  usd_balance, 'usd_balance')
     fileutils.update_file_key(settings.TARGETS_HOLDINGS_FILE, target_alias,
-                              'tokens_by_chain', target_holdings)
+                              target_holdings, 'tokens_by_chain')
+
+
+def get_target_holdings_diff(target_alias: str, updated_holdings: dict) -> dict:
+    """
+    Gets a DeepDiff dictionary with the differences in holdings between saved data and
+    requested data.
+
+    :param target_alias: target alias
+    :param updated_holdings: last requested data
+    :return: DeepDiff dict
+    """
+    prev_holdings = get_holdings_from_file(target_alias)
+    return _compare_holdings(prev_holdings, updated_holdings)
+
+
+def _compare_holdings(prev: dict, last: dict) -> DeepDiff:
+    """
+    Checks for differences in balances of the holdings of a wallet from a user.
+    """
+    return DeepDiff(prev,
+                    last,
+                    verbose_level=2,
+                    exclude_paths=settings.EXCLUDED,
+                    ignore_numeric_type_changes=True,
+                    ignore_string_case=True
+                    ).to_dict()
 
 
 def _request_token_list(account) -> requests.Response:
