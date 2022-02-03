@@ -1,9 +1,7 @@
 import pytest
 
-from compare import _compare_holdings
 
-
-@pytest.fixture
+@pytest.fixture(scope="module")
 def saved_data():
     return {
         "alias": "Me",
@@ -40,7 +38,7 @@ def saved_data():
     }
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def requested_data():
     return {
         "alias": "Me",
@@ -80,6 +78,21 @@ def requested_data():
     }
 
 
-# def test_compare_holdings(saved_data, requested_data, compared_result):
-#     result = _compare_holdings(saved_data, requested_data)
-#     assert result == compared_result
+@pytest.fixture(scope="module")
+def diff_dict():
+    return {'dictionary_item_added': {
+        "root['tokens_by_chain']['arb']['DPX']": '0.32030158008708476',
+        "root['tokens_by_chain']['arb']['USDC']": '2618.52978',
+        "root['tokens_by_chain']['eth']['FTM']": '69.84653761752556',
+        "root['tokens_by_chain']['ftm']['MIM']": '547.7211225042761'},
+            'dictionary_item_removed': {
+                "root['tokens_by_chain']['eth']['LINK']": '169.84653761752556'},
+            'values_changed': {"root['tokens_by_chain']['arb']['MAGIC']": {
+                'new_value': '155.62757924869086',
+                'old_value': '1155.62757924869086'},
+                               "root['tokens_by_chain']['eth']['CVXCRV']": {
+                                   'new_value': '242.54690279384184',
+                                   'old_value': '542.54690279384184'},
+                               "root['tokens_by_chain']['eth']['ETH']": {
+                                   'new_value': '0.21453259697220345',
+                                   'old_value': '1.21453259697220345'}}}
