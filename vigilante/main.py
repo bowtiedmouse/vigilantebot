@@ -3,6 +3,7 @@ import os
 import json
 
 import settings
+from holdings import holdings_file_exists, create_holdings_file
 from target import Target
 from alerts import AlertLog as Log
 
@@ -27,7 +28,14 @@ def _get_target_accounts_data() -> dict:
         print(f"{settings.TARGET_ACCOUNTS_FILE} file is malformed: {e}")
 
 
+def _init():
+    if not holdings_file_exists():
+        create_holdings_file()
+
+
 def main():
+    _init()
+
     targets = [
         Target(user["alias"], user["addresses"])
         for user in _get_target_accounts_data()
