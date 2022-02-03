@@ -1,6 +1,5 @@
 from typing import Protocol
 from dataclasses import dataclass, field
-from pprint import pprint
 
 # List to keep track of SortableAlert events
 _log = []
@@ -14,25 +13,8 @@ class SortableAlert(Protocol):
         pass
 
 
-@dataclass
-class USDBalanceAlert:
-    target_alias: str
-    balance: int = field(compare=False)
-    priority: int = field(init=False, repr=False)
-    chain_id: str = field(init=False, repr=False, default="")
-    msg: str = field(init=False, compare=False, repr=False)
-
-    def __post_init__(self):
-        self.priority = 5
-        self.msg = (f"Total USD balance for {self.target_alias}: "
-                    f"${'{:,}'.format(self.balance)}")
-
-    def log(self) -> None:
-        pprint(self)
-
-
 @dataclass(order=True)
-class TokenBalanceAlert:
+class TokenAlert:
     """
     Represents an alert of activity in one token.
 
@@ -42,53 +24,84 @@ class TokenBalanceAlert:
     """
     target_alias: str
     chain_id: str
-    priority: int = field(init=False)
-    msg: str = field(init=False, compare=False)
+    priority: int = field(init=False, repr=False)
+    msg: str = field(init=False, compare=False, repr=False)
 
-    @staticmethod
     def log(self) -> None:
-        pprint(self)
+        print(self.msg)
 
 
 @dataclass
-class RemovedAlert(TokenBalanceAlert):
+class NewTargetAlert(TokenAlert):
+    """
+    Represents an alert for a new target added to the watch.
+    """
+    usd_balance: int = field(compare=False)
+    token_list: list = field(compare=False)
+    # needed for sorting:
+    chain_id: str = field(init=False, repr=False, default="")
+
+    def __post_init__(self):
+        self.priority = 90
+        self.msg = (f"Watching a new target: **{self.target_alias}**. "
+                    f"Current USD balance: ${'{:,}'.format(self.usd_balance)}. "
+                    f"Token holdings: {', '.join(self.token_list)}")
+
+
+@dataclass
+class USDBalanceAlert(TokenAlert):
+    """
+    Not really an alert, but helps with logging a target's USD balance.
+    """
+    balance: int = field(compare=False)
+    # needed for sorting:
+    chain_id: str = field(init=False, repr=False, default="")
+
+    def __post_init__(self):
+        self.priority = 5
+        self.msg = (f"Total USD balance: "
+                    f"${'{:,}'.format(self.balance)}")
+
+
+@dataclass
+class RemovedAlert(TokenAlert):
     """
     Represents an alert for a token that has disappeared from a target's account.
     """
-    symbol: str = field(repr=False)
+    symbol: str
     amount: str = field(repr=False)
 
     def __post_init__(self):
         self.priority = 10
-        self.msg = (f"Token removed from account: {self.symbol}. "
+        self.msg = (f"Token removed: {self.chain_id}.{self.symbol}. "
                     f"Previous balance: {self.amount}")
 
 
 @dataclass
-class AddedAlert(TokenBalanceAlert):
+class AddedAlert(TokenAlert):
     """
     Represents an alert for a new token that has been added to a target's account.
     """
-    symbol: str = field(repr=False)
+    symbol: str
     amount: str = field(repr=False, compare=False)
 
     def __post_init__(self):
         self.priority = 20
-        self.msg = f"New token on account: {self.symbol}. Balance: {self.amount}"
+        self.msg = f"New token: {self.chain_id}.{self.symbol}. Balance: {self.amount}"
 
 
 @dataclass
-class ChangedAlert(TokenBalanceAlert):
+class ChangedAlert(TokenAlert):
     """
     Represents an alert for a token that has changed balance in a target's account.
     """
-    symbol: str = field(repr=False)
-    amount_initial: str = field(repr=False, compare=False)
-    amount_final: str = field(repr=False, compare=False)
+    symbol: str
+    amount_initial: str = field(compare=False)
+    amount_final: str = field(compare=False)
 
     def __post_init__(self):
         self.priority = 30
-        self.msg = (f"Change in balance for token {self.symbol}: "
+        self.msg = (f"Balance changed for {self.chain_id}.{self.symbol}: "
                     f"from {self.amount_initial} to {self.amount_final}")
 
 
@@ -103,7 +116,18 @@ class AlertLog:
 
     @staticmethod
     def log():
-        pprint(_log)
+        if len(_log) == 0:
+            print("No changes yet on any watched target.")
+            return False
+
+        last_alias = ""
+        for alert in _log:
+            if last_alias != alert.target_alias:
+                print(f"\nUpdates for **{alert.target_alias}**:")
+                last_alias = alert.target_alias
+
+            print("·", end=" ")
+            alert.log()
 
     @staticmethod
     def sort():
@@ -116,7 +140,13 @@ class AlertLog:
                       )
 
 
-def log_target_holdings_changes(target_alias: str, diff: dict) -> None:
+def log_new_target(target_alias: str, balance: float, target_holdings: dict):
+    token_list = [token for chain in target_holdings.values() for token in chain]
+    AlertLog.add(NewTargetAlert(target_alias, int(balance), token_list))
+    # return token_list  # for testing
+
+
+def log_target_holdings_diff(target_alias: str, diff: dict) -> None:
     """
     Public function to update the _log with new alerts from the DeepDiff data.
 
@@ -141,7 +171,7 @@ def log_target_usd_balance(target_alias: str, balance: float) -> None:
     :param balance: USD balance
     :return: None
     """
-    AlertLog.add(USDBalanceAlert(target_alias, balance))
+    AlertLog.add(USDBalanceAlert(target_alias, int(balance)))
 
 
 def _log_diff_results(target_alias: str, diff_results: dict, action: str):
