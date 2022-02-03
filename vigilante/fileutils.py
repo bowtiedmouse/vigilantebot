@@ -28,7 +28,7 @@ def update_file_key(file: str, primary_key: str, content, secondary_key: str = "
             file_data[primary_key][secondary_key] = content
 
         with open(file, "w") as f:
-            json.dump(file_data, f)
+            json.dump(file_data, f, indent=2)
 
     except FileNotFoundError:
         print(f"File not found: {file}. Couldn't update it.")
