@@ -1,21 +1,9 @@
 import time
 from dataclasses import dataclass
 
+import settings
 import holdings
-import compare
 import alerts
-
-
-# On object init: check if exists on file?
-# 0- check timestamp of last tx and compare with user last_active in file
-# 1- process tokens to merge all accounts from one user DONE
-# 2- compare with user saved in file
-# 3- log differences
-# 4- update file
-
-# Note: a different in a token balance could mean he's staking/unstaking it or claiming
-# No need for updating the file: just load it in memory, compare with response, and dump
-#   the new data
 
 
 @dataclass
@@ -27,19 +15,31 @@ class Target:
     addresses: list
 
     def watch(self) -> None:
+        print(f"Watching {self.alias}...")
+        new_target = not holdings.is_target_in_file(self.alias)
+
         # todo: should be async
-        # while True:
-        # 1. Get updated balances data
-        holdings_by_chain = self.get_updated_holdings()
-        # 2. Compare with previously saved data
-        changes = compare.get_target_holdings_changes(self.alias, holdings_by_chain)
-        usd_balance = self.get_usd_balance()
-        # 4. Add differences to the log
-        alerts.log_target_holdings_changes(self.alias, changes)
-        alerts.log_target_usd_balance(self.alias, usd_balance)
-        # 3. Update saved data
-        holdings.update_holdings_file(self.alias, holdings_by_chain, usd_balance)
-        # time.sleep(settings.WATCH_FREQUENCY)
+        test = True
+        while test:
+            updated_holdings = self.get_updated_holdings()
+            usd_balance = self.get_usd_balance()
+
+            if new_target:
+                self._save_new_target(usd_balance, updated_holdings)
+                new_target = False
+
+                continue
+
+            holdings_diff = holdings.get_target_holdings_diff(
+                self.alias, updated_holdings)
+
+            if holdings_diff:
+                alerts.log_target_holdings_diff(self.alias, holdings_diff)
+                alerts.log_target_usd_balance(self.alias, usd_balance)
+                self._update_file(updated_holdings, usd_balance)
+
+            # time.sleep(settings.WATCH_FREQUENCY)
+            test = False
 
     def get_updated_holdings(self) -> dict:
         """
@@ -61,3 +61,12 @@ class Target:
         return sum(
             holdings.get_account_usd_balance(account) for account in self.addresses
         )
+
+    def _update_file(self, updated_holdings: dict, usd_balance: int) -> None:
+        holdings.update_holdings_file(self.alias, updated_holdings, usd_balance)
+        print("updated")
+
+    def _save_new_target(self, usd_balance: int, updated_holdings: dict):
+        alerts.log_new_target(self.alias, usd_balance, updated_holdings)
+        print(f"{self.alias} will be added to {settings.TARGETS_HOLDINGS_FILE}")
+        self._update_file(updated_holdings, usd_balance)
