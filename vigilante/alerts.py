@@ -2,6 +2,8 @@ import re
 from typing import Protocol
 from dataclasses import dataclass, field
 
+import holdings
+
 # List to keep track of SortableAlert events
 _log = []
 
@@ -200,21 +202,12 @@ def _log_diff_results(target_alias: str, diff_results: dict, action: str):
     }
     """
     for path, token_data in diff_results.items():
-        # try:
-        path_keys = re.compile(r'[a-zA-Z]+').findall(path)
-        chain_id = path_keys[1]
-        symbol = path_keys[2]
+        chain_id, symbol = re.compile(r'\w+').findall(path)[1:3]
         _add_alert(action, target_alias, chain_id, symbol, token_data)
 
-        # except ValueError:
-        #     # If a target adds tokens to a chain that didn't exist before, the format
-        #     # returned from DeepDiff will be different
-        #     chain_id = chain_token.replace("root['", "").replace("']", "")
-        #     for symbol, amount in balance.items():
-        #         _add_alert(action, target_alias, chain_id, symbol, amount)
 
-
-def _add_alert(action: str, target_alias: str, chain_id: str, symbol: str, token_data: dict) -> None:
+def _add_alert(action: str, target_alias: str, chain_id: str, symbol: str,
+               token_data: dict) -> None:
     assert action in {'removed', 'added', 'changed'}, "Wrong action supplied."
 
     if action == "removed":
@@ -226,7 +219,8 @@ def _add_alert(action: str, target_alias: str, chain_id: str, symbol: str, token
                                 symbol, token_data['amount']))
 
     elif action == "changed":
-        AlertLog.add(ChangedAlert(target_alias, chain_id, symbol,
-                                  amount_previous=token_data['old_value'],
-                                  amount_new=token_data['new_value']
-                                  ))
+        if holdings.is_min_diff(token_data['old_value'], token_data['new_value']):
+            AlertLog.add(ChangedAlert(target_alias, chain_id, symbol,
+                                      amount_previous=token_data['old_value'],
+                                      amount_new=token_data['new_value']
+                                      ))

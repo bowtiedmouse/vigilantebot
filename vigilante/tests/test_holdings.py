@@ -12,3 +12,8 @@ def test_process_target_token_list(updated_holdings_data, requested_data):
                                     'contract_address': 'arb',
                                     'symbol': 'ETH',
                                     'usd_price': 2840.69}}}
+
+
+def test_new_value_is_min_diff_than_old_value():
+    assert holdings.is_min_diff(190, 100)
+    assert not holdings.is_min_diff(1.0, 1.001)

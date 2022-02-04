@@ -18,8 +18,9 @@ class Target:
         print(f"Watching {self.alias}...")
         new_target = not holdings.is_target_in_file(self.alias)
 
-        # todo: should be async
+        # todo: only for testing
         test = True
+        # todo: should be async
         while test:
             updated_holdings = self.get_updated_holdings()
             usd_balance = self.get_usd_balance()

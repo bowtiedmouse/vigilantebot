@@ -1,6 +1,11 @@
 WATCH_FREQUENCY = 60 * 15
 
 MIN_TOKEN_BALANCE = 100
+
+# Min % that a token balance needs to change to be reported. Helps to avoid
+# reporting gas consumption
+MIN_PC_DIFF = 5
+
 TARGET_ACCOUNTS_FILE = "target_accounts.json"
 TARGETS_HOLDINGS_FILE = "targets_holdings.json"
 

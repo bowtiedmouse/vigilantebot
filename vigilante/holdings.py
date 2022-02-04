@@ -20,6 +20,10 @@ def has_min_token_balance(token: json) -> bool:
     return token['amount'] * token['price'] >= settings.MIN_TOKEN_BALANCE
 
 
+def is_min_diff(new_value: float, old_value: float) -> bool:
+    return abs(100 * (new_value - old_value) / old_value) >= settings.MIN_PC_DIFF
+
+
 def get_account_usd_balance(account: str) -> int:
     """
     Gets current account's USD value from Debank API.
@@ -93,6 +97,7 @@ def _compare_holdings(prev: dict, last: dict) -> DeepDiff:
                     exclude_paths=settings.EXCLUDED,
                     ignore_numeric_type_changes=True,
                     ignore_string_case=True,
+                    math_epsilon=0.0001,
                     exclude_regex_paths=r"\['usd_price'\]"
                     ).to_dict()
 
