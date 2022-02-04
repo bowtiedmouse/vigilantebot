@@ -20,7 +20,7 @@ def has_min_token_balance(token: json) -> bool:
     return token['amount'] * token['price'] >= settings.MIN_TOKEN_BALANCE
 
 
-def is_min_diff(new_value: float, old_value: float) -> bool:
+def has_changed_by_min_pc(new_value: float, old_value: float) -> bool:
     return abs(100 * (new_value - old_value) / old_value) >= settings.MIN_PC_DIFF
 
 

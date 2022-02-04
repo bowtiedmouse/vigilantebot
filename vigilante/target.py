@@ -1,5 +1,5 @@
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import settings
 import holdings
@@ -13,6 +13,8 @@ class Target:
     """
     alias: str
     addresses: list
+    usd_balance: int = field(init=False)
+    holdings: dict = field(init=False)
 
     def watch(self) -> None:
         print(f"Watching {self.alias}...")
@@ -22,27 +24,34 @@ class Target:
         test = True
         # todo: should be async
         while test:
-            updated_holdings = self.get_updated_holdings()
-            usd_balance = self.get_usd_balance()
+            self._update()
 
             if new_target:
-                self._save_new_target(usd_balance, updated_holdings)
+                self._save_new_target()
                 new_target = False
 
                 continue
 
-            holdings_diff = holdings.get_target_holdings_diff(
-                self.alias, updated_holdings)
+            holdings_diff = holdings.get_target_holdings_diff(self.alias, self.holdings)
 
             if holdings_diff:
-                alerts.log_target_holdings_diff(self.alias, holdings_diff)
-                alerts.log_target_usd_balance(self.alias, usd_balance)
-                self._update_file(updated_holdings, usd_balance)
+                self._log_diff(holdings_diff)
+                self._update_file()
 
             # time.sleep(settings.WATCH_FREQUENCY)
             test = False
 
-    def get_updated_holdings(self) -> dict:
+    # todo
+    def pause(self) -> None:
+        """
+        Pauses watching.
+        """
+
+    def _update(self):
+        self.holdings = self._get_updated_holdings()
+        self.usd_balance = self._get_usd_balance()
+
+    def _get_updated_holdings(self) -> dict:
         """
         Gets last updated aggregated holdings for all the accounts of a target.
 
@@ -53,7 +62,7 @@ class Target:
             holdings_by_chain = holdings.get_token_holdings(account, holdings_by_chain)
         return holdings_by_chain
 
-    def get_usd_balance(self) -> int:
+    def _get_usd_balance(self) -> int:
         """
         Gets the total USD balance of all the accounts of a target.
 
@@ -63,10 +72,14 @@ class Target:
             holdings.get_account_usd_balance(account) for account in self.addresses
         )
 
-    def _update_file(self, updated_holdings: dict, usd_balance: int) -> None:
-        holdings.update_holdings_file(self.alias, updated_holdings, usd_balance)
+    def _log_diff(self, holdings_diff) -> None:
+        alerts.log_target_holdings_diff(self.alias, holdings_diff)
+        alerts.log_target_usd_balance(self.alias, self.usd_balance)
 
-    def _save_new_target(self, usd_balance: int, updated_holdings: dict):
-        alerts.log_new_target(self.alias, usd_balance, updated_holdings)
+    def _update_file(self) -> None:
+        holdings.update_holdings_file(self.alias, self.holdings, self.usd_balance)
+
+    def _save_new_target(self) -> None:
+        alerts.log_new_target(self.alias, self.usd_balance, self.holdings)
         print(f"{self.alias} holdings will be added to {settings.TARGETS_HOLDINGS_FILE}")
-        self._update_file(updated_holdings, usd_balance)
+        self._update_file()

@@ -2,7 +2,7 @@ import re
 from typing import Protocol
 from dataclasses import dataclass, field
 
-import holdings
+from holdings import has_changed_by_min_pc
 
 # List to keep track of SortableAlert events
 _log = []
@@ -219,7 +219,7 @@ def _add_alert(action: str, target_alias: str, chain_id: str, symbol: str,
                                 symbol, token_data['amount']))
 
     elif action == "changed":
-        if holdings.is_min_diff(token_data['old_value'], token_data['new_value']):
+        if has_changed_by_min_pc(token_data['old_value'], token_data['new_value']):
             AlertLog.add(ChangedAlert(target_alias, chain_id, symbol,
                                       amount_previous=token_data['old_value'],
                                       amount_new=token_data['new_value']
