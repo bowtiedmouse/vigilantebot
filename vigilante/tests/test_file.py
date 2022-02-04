@@ -54,7 +54,7 @@ def test_create_empty_key_in_file(file, key):
 def test_update_file_key(file, key, key_content):
     fileutils.create_empty_json_file(file)
     fileutils.create_empty_key_in_file(file, key)
-    fileutils.update_file_key(file, key, 'child_key', key_content)
+    fileutils.update_file_key(file, key, key_content, 'child_key')
     with open(file, 'r') as f:
         data = json.load(f)
 
@@ -65,7 +65,7 @@ def test_update_file_key(file, key, key_content):
 def test_get_file_key_content(file, key, key_content):
     fileutils.create_empty_json_file(file)
     fileutils.create_empty_key_in_file(file, key)
-    fileutils.update_file_key(file, key, 'child_key', key_content)
+    fileutils.update_file_key(file, key, key_content, 'child_key')
     data = fileutils.get_file_key_content(file, key, 'child_key')
     # with open(file, 'r') as f:
     #     data = json.load(f)
