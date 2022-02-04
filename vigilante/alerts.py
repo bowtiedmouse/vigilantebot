@@ -1,3 +1,4 @@
+import re
 from typing import Protocol
 from dataclasses import dataclass, field
 
@@ -43,7 +44,7 @@ class NewTargetAlert(TokenAlert):
 
     def __post_init__(self):
         self.priority = 90
-        self.msg = (f"Watching a new target: **{self.target_alias}**. "
+        self.msg = (f"Added to file. "
                     f"Current USD balance: ${'{:,}'.format(self.usd_balance)}. "
                     f"Token holdings: {', '.join(self.token_list)}")
 
@@ -96,13 +97,13 @@ class ChangedAlert(TokenAlert):
     Represents an alert for a token that has changed balance in a target's account.
     """
     symbol: str
-    amount_initial: str = field(compare=False)
-    amount_final: str = field(compare=False)
+    amount_previous: str = field(compare=False)
+    amount_new: str = field(compare=False)
 
     def __post_init__(self):
         self.priority = 30
         self.msg = (f"Balance changed for {self.chain_id}.{self.symbol}: "
-                    f"from {self.amount_initial} to {self.amount_final}")
+                    f"from {self.amount_previous} to {self.amount_new}")
 
 
 class AlertLog:
@@ -117,7 +118,7 @@ class AlertLog:
     @staticmethod
     def log():
         if len(_log) == 0:
-            print("No changes yet on any watched target.")
+            print("No updates to report on watched targets yet.")
             return False
 
         last_alias = ""
@@ -163,7 +164,7 @@ def log_target_holdings_diff(target_alias: str, diff: dict) -> None:
         _log_diff_results(target_alias, diff['values_changed'], action="changed")
 
 
-def log_target_usd_balance(target_alias: str, balance: float) -> None:
+def log_target_usd_balance(target_alias: str, balance: int) -> None:
     """
     Adds the current USD balance of a target account to the logs.
 
@@ -171,53 +172,61 @@ def log_target_usd_balance(target_alias: str, balance: float) -> None:
     :param balance: USD balance
     :return: None
     """
-    AlertLog.add(USDBalanceAlert(target_alias, int(balance)))
+    AlertLog.add(USDBalanceAlert(target_alias, balance))
 
 
 def _log_diff_results(target_alias: str, diff_results: dict, action: str):
     """
     Logs DeepDiff data to the alert system.
 
-    DeepDiff model:
+    DeepDiff model (assuming comparing inside target's holdings key):
     {
-        'dictionary_item_added':    {"root['arb']['WETH']": '0.661955993077381'},
-        'dictionary_item_removed':  {"root['eth']['PDT']": '475.63850932673466'},
-        'values_changed':           {"root['arb']['DPX']":{
-                                        'new_value': '10.23860662271384542',
-                                        'old_value': '0.23860662271384542'},
-                                    "root['eth']['FTM']": {
-                                        'new_value': '68.84653761752556',
-                                        'old_value': '69.84653761752556'}
-                                    }
+        'dictionary_item_added': {
+            "root['arb']['DPX']": {
+                    'amount': '51.344',
+                    'contract_address': '0x1aa61c196e76805fcbe394ea00e4ffced24fc420',
+                    'symbol': 'DPX',
+                    'usd_price': '1668.29'}},
+        'dictionary_item_removed': {
+            "root['arb']['MAGIC']": {
+                    'amount': 1551.344,
+                    'contract_address': '0x1aa61c196e76805fcbe394ea00e4ffced24fc469',
+                    'symbol': 'MAGIC',
+                    'usd_price': 8.29}},
+        'values_changed': {
+            "root['eth']['ETH']['amount']": {
+                    'new_value': 3.3440000000000003,
+                    'old_value': 1.344}}
     }
     """
-    for chain_token, balance in diff_results.items():
-        try:
-            # DeepDiff has a extract() function, but it only returns value,
-            # and we also need key
-            chain_id, symbol = chain_token.replace(
-                "root['", "").replace("']", "").split("['")
-            _add_alert(action, target_alias, chain_id, symbol, balance)
+    for path, token_data in diff_results.items():
+        # try:
+        path_keys = re.compile(r'[a-zA-Z]+').findall(path)
+        chain_id = path_keys[1]
+        symbol = path_keys[2]
+        _add_alert(action, target_alias, chain_id, symbol, token_data)
 
-        except ValueError:
-            # If a target adds tokens to a new chain the format returned from DeepDiff
-            # will be different
-            chain_id = chain_token.replace("root['", "").replace("']", "")
-            for symbol, amount in balance.items():
-                _add_alert(action, target_alias, chain_id, symbol, amount)
+        # except ValueError:
+        #     # If a target adds tokens to a chain that didn't exist before, the format
+        #     # returned from DeepDiff will be different
+        #     chain_id = chain_token.replace("root['", "").replace("']", "")
+        #     for symbol, amount in balance.items():
+        #         _add_alert(action, target_alias, chain_id, symbol, amount)
 
 
-def _add_alert(action: str, target_alias: str, chain_id: str, symbol: str, amount):
+def _add_alert(action: str, target_alias: str, chain_id: str, symbol: str, token_data: dict) -> None:
     assert action in {'removed', 'added', 'changed'}, "Wrong action supplied."
 
     if action == "removed":
-        AlertLog.add(RemovedAlert(target_alias, chain_id, symbol, amount))
+        AlertLog.add(RemovedAlert(target_alias, chain_id,
+                                  symbol, token_data['amount']))
 
     elif action == "added":
-        AlertLog.add(AddedAlert(target_alias, chain_id, symbol, amount))
+        AlertLog.add(AddedAlert(target_alias, chain_id,
+                                symbol, token_data['amount']))
 
     elif action == "changed":
         AlertLog.add(ChangedAlert(target_alias, chain_id, symbol,
-                                  amount_initial=amount['old_value'],
-                                  amount_final=amount['new_value']
+                                  amount_previous=token_data['old_value'],
+                                  amount_new=token_data['new_value']
                                   ))

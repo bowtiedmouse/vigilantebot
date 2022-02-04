@@ -26,7 +26,7 @@ def get_account_usd_balance(account: str) -> int:
     """
     balance = requests.get(
         settings.DEBANK_ACCOUNT_BALANCE_URL.format(address=account)
-    ).json()["total_usd_value"]
+    ).json()['total_usd_value']
 
     return int(round(balance, 0))
 
@@ -37,7 +37,7 @@ def holdings_file_exists() -> bool:
 
 def create_holdings_file() -> None:
     fileutils.create_empty_json_file(settings.TARGETS_HOLDINGS_FILE)
-    print(f"Created file: {settings.TARGETS_HOLDINGS_FILE}")
+    print(f'Created file: {settings.TARGETS_HOLDINGS_FILE}')
 
 
 def is_target_in_file(target_alias: str) -> bool:
@@ -55,7 +55,7 @@ def get_holdings_from_file(target_alias: str) -> dict:
     Gets the last saved data for a user.
     """
     return fileutils.get_file_key_content(settings.TARGETS_HOLDINGS_FILE, target_alias,
-                                          'tokens_by_chain')
+                                          'wallet_holdings')
 
 
 def update_holdings_file(target_alias: str, target_holdings: dict,
@@ -67,7 +67,7 @@ def update_holdings_file(target_alias: str, target_holdings: dict,
         fileutils.update_file_key(settings.TARGETS_HOLDINGS_FILE, target_alias,
                                   usd_balance, 'usd_balance')
     fileutils.update_file_key(settings.TARGETS_HOLDINGS_FILE, target_alias,
-                              target_holdings, 'tokens_by_chain')
+                              target_holdings, 'wallet_holdings')
 
 
 def get_target_holdings_diff(target_alias: str, updated_holdings: dict) -> dict:
@@ -92,7 +92,8 @@ def _compare_holdings(prev: dict, last: dict) -> DeepDiff:
                     verbose_level=2,
                     exclude_paths=settings.EXCLUDED,
                     ignore_numeric_type_changes=True,
-                    ignore_string_case=True
+                    ignore_string_case=True,
+                    exclude_regex_paths=r"\['usd_price'\]"
                     ).to_dict()
 
 
@@ -103,24 +104,32 @@ def _request_token_list(account) -> requests.Response:
     return requests.get(settings.DEBANK_TOKEN_LIST_URL.format(address=account))
 
 
-def _process_token_list(target_holdings_by_chain: dict, tokens: dict) -> dict:
+def _process_token_list(target_holdings_by_chain: dict, token_list: dict) -> dict:
     """
     Simplifies request's returned object by getting only needed data and
     adding up token balances from several user's accounts.
     """
-    for token in tokens:
+    for token in token_list:
         if not has_min_token_balance(token):
             continue
 
-        chain_id = token["chain"].lower()
-        symbol = token["symbol"].upper()
-        amount = token["amount"]
+        chain_id = token['chain'].lower()
+        token_address = token['id']
+        symbol = token['symbol'].upper()
+        amount = token['amount']
+        token_price = token['price']
 
         if chain_id not in target_holdings_by_chain:
             target_holdings_by_chain[chain_id] = {}
 
         if symbol in target_holdings_by_chain[chain_id]:
-            amount += float(target_holdings_by_chain[chain_id][symbol])
-        target_holdings_by_chain[chain_id][symbol] = str(amount)
+            amount += float(target_holdings_by_chain[chain_id][symbol]['amount'])
+
+        target_holdings_by_chain[chain_id][symbol] = {
+            'contract_address': token_address,
+            'symbol': symbol,
+            'amount': amount,
+            'usd_price': token_price
+        }
 
     return target_holdings_by_chain

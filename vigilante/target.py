@@ -67,5 +67,5 @@ class Target:
 
     def _save_new_target(self, usd_balance: int, updated_holdings: dict):
         alerts.log_new_target(self.alias, usd_balance, updated_holdings)
-        print(f"{self.alias} will be added to {settings.TARGETS_HOLDINGS_FILE}")
+        print(f"{self.alias} holdings will be added to {settings.TARGETS_HOLDINGS_FILE}")
         self._update_file(updated_holdings, usd_balance)

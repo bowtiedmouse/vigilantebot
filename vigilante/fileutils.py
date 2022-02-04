@@ -46,7 +46,8 @@ def get_file_key_content(file: str, primary_key: str, secondary_key: str = ""):
     except KeyError:
         print(f"{primary_key} not found in {file}.")
     except json.decoder.JSONDecodeError:
-        print("File is empty or malformed.")
+        print("File is empty or malformed. Will be restored.")
+        create_empty_json_file(file)
 
     return key_content
 

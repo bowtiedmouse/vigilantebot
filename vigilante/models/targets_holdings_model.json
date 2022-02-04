@@ -1,0 +1,25 @@
+{
+  "Whale 1": {
+    "alias": "Whale 1",
+    "usd_balance": 16568,
+    "wallet_holdings": {
+      "eth": {
+        "ETH": {
+          "contract_address": "0x1aa61c196e76805fcbe394ea00e4ffced24fc469",
+          "symbol": "ETH",
+          "amount": 1.344,
+          "usd_price": 3048.29
+        }
+      },
+      "arb": {
+        "MAGIC": {
+          "contract_address": "0x1aa61c196e76805fcbe394ea00e4ffced24fc469",
+          "symbol": "MAGIC",
+          "amount": 1551.344,
+          "usd_price": 8.29
+        }
+      }
+    }
+  },
+  "2nd Whale": {}
+}
