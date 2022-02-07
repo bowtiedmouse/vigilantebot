@@ -2,20 +2,21 @@ import json
 
 import pytest
 
+from target import Target
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def saved_holdings_data():
     with open('../models/targets_holdings_model.json', 'r') as f:
         return json.load(f)['Whale 1']['wallet_holdings']
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def requested_data():
     with open('../models/debank_token_list_model.json', 'r') as f:
         return json.load(f)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def updated_holdings_data():
     with open('../models/targets_holdings_model.json', 'r') as f:
         data = json.load(f)['Whale 1']['wallet_holdings']
@@ -32,7 +33,7 @@ def updated_holdings_data():
     return data
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def diff_dict():
     return {'dictionary_item_added': {
                 "root['arb']['DPX']": {
@@ -50,3 +51,8 @@ def diff_dict():
                 "root['eth']['ETH']['amount']": {
                     'new_value': 3.3440000000000003,
                     'old_value': 1.344}}}
+
+
+@pytest.fixture
+def test_target():
+    return Target('Test Target', ['0x3f3e305c4ad49271ebda489dd43d2c8f027d2d41'])
