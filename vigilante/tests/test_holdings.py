@@ -1,3 +1,5 @@
+import pytest
+
 import holdings
 
 
@@ -14,6 +16,9 @@ def test_process_target_token_list(updated_holdings_data, requested_data):
                                     'usd_price': 2840.69}}}
 
 
-def test_new_value_is_min_diff_than_old_value():
-    assert holdings.has_changed_by_min_pc(190, 100)
-    assert not holdings.has_changed_by_min_pc(1.0, 1.001)
+@pytest.mark.parametrize('new_value, old_value, expected', [
+    (190, 100, True),
+    (1.0, 1.001, False)
+])
+def test_new_value_is_min_diff_than_old_value(new_value, old_value, expected):
+    assert holdings.has_changed_by_min_pc(new_value, old_value) == expected

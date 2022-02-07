@@ -24,6 +24,26 @@ def has_changed_by_min_pc(new_value: float, old_value: float) -> bool:
     return abs(100 * (new_value - old_value) / old_value) >= settings.MIN_PC_DIFF
 
 
+def get_token_pc_of_portfolio(token_data: dict, target) -> float:
+    if token_data.keys() >= {'amount', 'usd_price'}:
+        # total_portfolio = get_target_usd_balance(target)
+        token_investment = token_data['amount'] * token_data['usd_price']
+        return round(100 * token_investment / target.usd_balance, 1)
+    else:
+        raise ValueError("Couldn't calculate portfolio % of token.")
+
+
+def get_target_usd_balance(target) -> int:
+    """
+    Gets the total USD balance of all the accounts of a target.
+
+    :return: int
+    """
+    return sum(
+        get_account_usd_balance(account) for account in target.addresses
+    )
+
+
 def get_account_usd_balance(account: str) -> int:
     """
     Gets current account's USD value from Debank API.
@@ -97,7 +117,7 @@ def _compare_holdings(prev: dict, last: dict) -> DeepDiff:
                     exclude_paths=settings.EXCLUDED,
                     ignore_numeric_type_changes=True,
                     ignore_string_case=True,
-                    math_epsilon=0.0001,
+                    math_epsilon=0.001,
                     exclude_regex_paths=r"\['usd_price'\]"
                     ).to_dict()
 
