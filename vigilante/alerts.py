@@ -49,7 +49,7 @@ class NewTargetAlert(TokenAlert):
         self.priority = 90
         self.msg = (f"Added to file. "
                     f"Current USD balance: ${'{:,}'.format(self.usd_balance)}. "
-                    f"Token holdings: {', '.join(self.token_list)}")
+                    f"Wallet holdings (not including protocols): {', '.join(self.token_list)}")
 
 
 @dataclass

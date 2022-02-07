@@ -18,34 +18,16 @@ class Target:
 
     def watch(self) -> None:
         print(f"Watching {self.alias}...")
-        new_target = not holdings.is_target_in_file(self.alias)
+        self._update()
 
-        # todo: only for testing
-        test = True
-        # todo: should be async
-        while test:
-            self._update()
+        if not holdings.is_target_in_file(self.alias):
+            self._save_new_target()
+            return
 
-            if new_target:
-                self._save_new_target()
-                new_target = False
-
-                continue
-
-            holdings_diff = holdings.get_target_holdings_diff(self.alias, self.holdings)
-
-            if holdings_diff:
-                self._log_diff(holdings_diff)
-                self._update_file()
-
-            # time.sleep(settings.WATCH_FREQUENCY)
-            test = False
-
-    # todo
-    def pause(self) -> None:
-        """
-        Pauses watching.
-        """
+        holdings_diff = holdings.get_target_holdings_diff(self.alias, self.holdings)
+        if holdings_diff:
+            self._log_diff(holdings_diff)
+            self._update_file()
 
     def _update(self):
         self.holdings = self._get_updated_holdings()
@@ -63,17 +45,10 @@ class Target:
         return holdings_by_chain
 
     def _get_usd_balance(self) -> int:
-        """
-        Gets the total USD balance of all the accounts of a target.
-
-        :return: int
-        """
-        return sum(
-            holdings.get_account_usd_balance(account) for account in self.addresses
-        )
+        return holdings.get_target_usd_balance(self)
 
     def _log_diff(self, holdings_diff) -> None:
-        alerts.log_target_holdings_diff(self.alias, holdings_diff)
+        alerts.log_target_holdings_diff(self, holdings_diff)
         alerts.log_target_usd_balance(self.alias, self.usd_balance)
 
     def _update_file(self) -> None:
