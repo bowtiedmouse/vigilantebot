@@ -7,14 +7,9 @@ from holdings import holdings_file_exists, create_holdings_file
 from target import Target
 from alerts import AlertLog as Log
 
+# list of Targets to watch
+_targets = []
 
-#   for each account in watched_user:
-#       by chain:
-#       - symbol
-#       - amount
-#       - price
-# compare with previous
-# save
 
 def _get_target_accounts_data() -> dict:
     assert os.path.isfile(settings.TARGET_ACCOUNTS_FILE), "Need some accounts to watch!"
@@ -28,24 +23,36 @@ def _get_target_accounts_data() -> dict:
         print(f"{settings.TARGET_ACCOUNTS_FILE} file is malformed: {e}")
 
 
-def _init():
+def init():
+    global _targets
+
+    print("Initializing targets...")
+
     if not holdings_file_exists():
         create_holdings_file()
 
-
-def main():
-    _init()
-
-    targets = [
+    _targets = [
         Target(user["alias"], user["addresses"])
         for user in _get_target_accounts_data()
     ]
 
-    for target in targets:
+
+def watch_targets():
+    global _targets
+    if not len(_targets):
+        init()
+
+    print("Starting watch turn...")
+    for target in _targets:
         target.watch()
 
     Log.sort()
     Log.log()
+
+
+def main():
+    init()
+    watch_targets()
 
 
 if __name__ == '__main__':
