@@ -1,3 +1,4 @@
+from discord.ext import commands
 import discord
 
 from discordbot.settings import TOKEN
@@ -14,3 +15,9 @@ def run():
     bot = discord.Bot()
     setup(bot)
     bot.run(TOKEN)
+
+    @bot.event
+    async def on_command_error(ctx, error):
+        if isinstance(error, commands.CheckFailure):
+            with ctx.typing():
+                await ctx.send(error)
