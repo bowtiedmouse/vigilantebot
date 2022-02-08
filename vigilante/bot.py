@@ -1,0 +1,3 @@
+import discordbot
+
+discordbot.run()
