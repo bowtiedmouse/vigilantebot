@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-import os
+from os.path import isfile
 import json
 
 import settings
@@ -12,7 +12,7 @@ _targets = []
 
 
 def _get_target_accounts_data() -> dict:
-    assert os.path.isfile(settings.TARGET_ACCOUNTS_FILE), "Need some accounts to watch!"
+    assert isfile(settings.TARGET_ACCOUNTS_FILE), "Need some accounts to watch!"
 
     try:
         with open(settings.TARGET_ACCOUNTS_FILE, "r") as f:
@@ -37,7 +37,7 @@ def init():
     ]
 
 
-def watch_targets():
+def watch_targets(report_empty: bool = False):
     global _targets
     if not len(_targets):
         init()
@@ -47,12 +47,15 @@ def watch_targets():
         target.watch()
 
     Log.sort()
-    Log.log()
+    updates = Log.get_log(report_empty)
+    Log.clear()
+    print(updates)
+    return updates
 
 
 def main():
     init()
-    watch_targets()
+    watch_targets(report_empty=True)
 
 
 if __name__ == '__main__':
