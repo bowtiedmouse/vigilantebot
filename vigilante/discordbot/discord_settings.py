@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-import vigilante
+from vigilante import get_targets_alias_list
 
 load_dotenv()
 
@@ -13,4 +13,4 @@ WATCH_FREQUENCY_MINUTES = 1
 TOKEN = os.getenv('DISCORD_TOKEN')
 
 SUBSCRIPTIONS_FILE = 'data/subscriptions.json'
-TARGETS_LIST = vigilante.get_targets_alias_list()
+TARGETS_LIST = get_targets_alias_list()

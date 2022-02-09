@@ -3,8 +3,8 @@ from typing import Protocol
 from dataclasses import dataclass, field
 import shelve
 
-import settings
-from holdings import has_changed_by_min_pc, get_token_pc_of_portfolio
+from vigilante import settings
+from vigilante.holdings import has_changed_by_min_pc, get_token_pc_of_portfolio
 
 # List to keep track of SortableAlert events
 _log = []

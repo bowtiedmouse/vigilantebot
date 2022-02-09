@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from target import Target
+from vigilante.target import Target
 
 @pytest.fixture
 def saved_holdings_data():
@@ -55,4 +55,7 @@ def diff_dict():
 
 @pytest.fixture
 def test_target():
-    return Target('Test Target', ['0x3f3e305c4ad49271ebda489dd43d2c8f027d2d41'])
+    target = Target('Test Target', ['0x3f3e305c4ad49271ebda489dd43d2c8f027d2d41'])
+    target._update()
+    target.usd_balance = 100
+    return target

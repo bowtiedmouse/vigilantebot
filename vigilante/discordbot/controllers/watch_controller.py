@@ -3,11 +3,12 @@
 #   /watch
 #   /watch <target_alias>
 #   /stop
+import logging
 
 from discord.ext import tasks
 import discord
 
-from discordbot.settings import WATCH_FREQUENCY_MINUTES
+from discordbot.discord_settings import WATCH_FREQUENCY_MINUTES
 from discordbot.controllers import embed_helper as emb
 import vigilante
 
@@ -93,4 +94,5 @@ async def stop_watching(ctx: discord.ApplicationContext):
     """
     await ctx.respond('Oki!')
     watch_all_targets_task.stop()
+    logging.info('Watching stopped.')
     return await ctx.send("I've stopped watching. Will grab a bear and relax for a bit.")

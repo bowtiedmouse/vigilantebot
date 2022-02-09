@@ -5,12 +5,18 @@
 import json
 from os.path import isfile
 
+# todo: replace for aiohttp
+# async with aiohttp.ClientSession() as session:
+#     async with session.get('http://aws.random.cat/meow') as r:
+#         if r.status == 200:
+#             js = await r.json()
+#             await channel.send(js['file'])
 import requests
 
 from deepdiff import DeepDiff
 
-import settings
-import fileutils
+from vigilante import settings
+from vigilante import fileutils
 
 
 def has_min_token_balance(token: json) -> bool:

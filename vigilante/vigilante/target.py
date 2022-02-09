@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 
-import settings
-import holdings
-import alerts
+from vigilante import settings
+from vigilante import holdings
+from vigilante import alerts
 
 
 @dataclass

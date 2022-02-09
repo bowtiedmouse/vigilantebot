@@ -1,0 +1,3 @@
+import vigilante
+
+vigilante.main()

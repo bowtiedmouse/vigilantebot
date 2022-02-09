@@ -3,8 +3,8 @@ from discord.commands import permissions
 from discord.commands import slash_command
 import discord
 
-from discordbot.settings import GUILD_IDS, ADMIN_ROLES
-from ..controllers import manage_controller as mc
+from discordbot.discord_settings import GUILD_IDS, ADMIN_ROLES
+from discordbot.controllers import manage_controller as mc
 
 
 class ManageTargetsCommands(commands.Cog):

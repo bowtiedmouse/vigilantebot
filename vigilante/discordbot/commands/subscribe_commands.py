@@ -3,8 +3,8 @@ from discord.commands import slash_command
 from discord.commands import Option
 import discord
 
-from discordbot.settings import GUILD_IDS, TARGETS_LIST
-from ..controllers import subscribe_controller as sc
+from discordbot.discord_settings import GUILD_IDS, TARGETS_LIST
+from discordbot.controllers import subscribe_controller as sc
 
 
 class SubscribeCommands(commands.Cog):

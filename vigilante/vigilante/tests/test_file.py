@@ -4,7 +4,7 @@ import os
 import pytest
 from os.path import isfile
 
-import fileutils
+from vigilante import fileutils
 
 
 @pytest.fixture

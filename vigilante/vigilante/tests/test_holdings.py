@@ -1,6 +1,6 @@
 import pytest
 
-import holdings
+from vigilante import holdings
 
 
 def test_compare_holdings_diff(saved_holdings_data, updated_holdings_data, diff_dict):

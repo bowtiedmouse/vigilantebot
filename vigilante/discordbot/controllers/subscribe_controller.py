@@ -8,8 +8,8 @@ from os.path import isfile
 
 import discord
 
-from discordbot.settings import SUBSCRIPTIONS_FILE
-import fileutils
+from discordbot.discord_settings import SUBSCRIPTIONS_FILE
+from vigilante import fileutils
 
 
 async def subscribe_user(ctx: discord.ApplicationContext, target_alias: str, token_symbol: str):
