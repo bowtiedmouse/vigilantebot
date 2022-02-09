@@ -1,4 +1,4 @@
-import logging
+# import logging
 
 from discord.ext import commands
 import discord
@@ -10,11 +10,9 @@ from .commands.subscribe_commands import SubscribeCommands
 from .controllers import subscribe_controller as sc
 import vigilante
 
-logger = logging.getLogger('discordbot')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='data/discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
+
+# Pycord logger
+# logger = logging.getLogger('discord')
 
 bot = discord.Bot()
 
