@@ -4,6 +4,8 @@ import discord
 from discordbot.settings import TOKEN
 from .commands.manage_commands import ManageTargetsCommands
 from .commands.watch_commands import WatchCommands
+from .commands.subscribe_commands import SubscribeCommands
+from .controllers import subscribe_controller as sc
 import vigilante
 
 bot = discord.Bot()
@@ -12,6 +14,9 @@ bot = discord.Bot()
 def setup(_bot):
     _bot.add_cog(ManageTargetsCommands(_bot))
     _bot.add_cog(WatchCommands(_bot))
+    _bot.add_cog(SubscribeCommands(_bot))
+    if not sc.subscriptions_file_exist():
+        sc.create_subscriptions_file()
 
 
 def run():

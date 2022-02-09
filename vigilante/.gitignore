@@ -1,4 +1,4 @@
 /data_models/
 /target_accounts.json
-/resources/
 /discordbot/examples/
+.env

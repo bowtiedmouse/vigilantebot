@@ -5,7 +5,7 @@ from discord.commands import Option
 import discord
 
 from discordbot.settings import GUILD_IDS, ADMIN_ROLES, TARGETS_LIST
-from ..processes import watch_processes as wp
+from ..controllers import watch_controller as wc
 
 
 class WatchCommands(commands.Cog):
@@ -27,7 +27,7 @@ class WatchCommands(commands.Cog):
 
         If no target selected, will report regularly.
         """
-        return await wp.watch_targets(ctx, target)
+        return await wc.watch_targets(ctx, target)
 
     # /stop
     @slash_command(name='stop', guild_ids=GUILD_IDS, default_permission=False)
@@ -37,4 +37,4 @@ class WatchCommands(commands.Cog):
         """
         Stop watching activity.
         """
-        return await wp.stop_watching(ctx)
+        return await wc.stop_watching(ctx)

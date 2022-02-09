@@ -3,7 +3,7 @@
 #   data from the blockchain
 #
 import json
-import os.path
+from os.path import isfile
 
 import requests
 
@@ -56,7 +56,7 @@ def get_account_usd_balance(account: str) -> int:
 
 
 def holdings_file_exists() -> bool:
-    return os.path.isfile(settings.TARGETS_HOLDINGS_FILE)
+    return isfile(settings.TARGETS_HOLDINGS_FILE)
 
 
 def create_holdings_file() -> None:

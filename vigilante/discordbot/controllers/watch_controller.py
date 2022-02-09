@@ -1,8 +1,14 @@
+# watch_controller.py
+# Watch tasks from the commands:
+#   /watch
+#   /watch <target_alias>
+#   /stop
+
 from discord.ext import tasks
 import discord
 
 from discordbot.settings import WATCH_FREQUENCY_MINUTES
-import embed_helper as emb
+from discordbot.controllers import embed_helper as emb
 import vigilante
 
 _is_watch_initial_start = True
@@ -66,8 +72,11 @@ async def watch_one_target(ctx: discord.ApplicationContext, target_alias: str):
 
 
 async def report_updates(ctx, alerts_log: list, target_alias: str = '', mention_user: bool = False):
+    """
+    Send any updates to the channel.
+    """
     response_msg = f"Hey {ctx.interaction.user.mention}, " if mention_user else ''
-    await ctx.send(response_msg + "I have some updates. I'm reportiiiing!")
+    await ctx.send(response_msg + "I have some updates. I'm reportiiiiing!")
 
     updates = emb.format_log(alerts_log)
 
@@ -79,6 +88,9 @@ async def report_updates(ctx, alerts_log: list, target_alias: str = '', mention_
 
 
 async def stop_watching(ctx: discord.ApplicationContext):
+    """
+    Stop the active watching task.
+    """
     await ctx.respond('Oki!')
     watch_all_targets_task.stop()
     return await ctx.send("I've stopped watching. Will grab a bear and relax for a bit.")

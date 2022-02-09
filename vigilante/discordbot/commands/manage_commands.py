@@ -4,7 +4,7 @@ from discord.commands import slash_command
 import discord
 
 from discordbot.settings import GUILD_IDS, ADMIN_ROLES
-from ..processes import manage_processes as mp
+from ..controllers import manage_controller as mc
 
 
 class ManageTargetsCommands(commands.Cog):
@@ -43,7 +43,7 @@ class ManageTargetsCommands(commands.Cog):
         """
         Show the list of all watched targets.
         """
-        targets_list = ', '.join(mp.get_targets_alias_list())
+        targets_list = ', '.join(mc.get_targets_alias_list())
         return await ctx.respond("I'm currently watching these targets:\n"
                                  f"**{targets_list}**."
                                  "\nAdmins can add more with the `add_target` command.")
