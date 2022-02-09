@@ -8,7 +8,7 @@ MIN_PC_DIFF = 5
 MIN_PORTFOLIO_PC = 0.49
 
 TARGET_ACCOUNTS_FILE = "target_accounts.json"
-TARGETS_HOLDINGS_FILE = "../data/targets_holdings.json"
+TARGETS_HOLDINGS_FILE = "data/targets_holdings.json"
 LOG_FILE = 'data/log'
 
 GAS_TOKENS = ['ETH', 'FTM', 'AVAX']

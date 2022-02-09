@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 from os.path import isfile
 import json
+from typing import Union
 
 import settings
 from holdings import holdings_file_exists, create_holdings_file
@@ -23,7 +24,32 @@ def _get_target_accounts_data() -> dict:
         print(f"{settings.TARGET_ACCOUNTS_FILE} file is malformed: {e}")
 
 
-def init():
+def get_address_from_alias(_alias: str) -> str:
+    for target in _targets:
+        if target.alias == _alias:
+            return target.addresses[0]
+    return ''
+
+
+def get_target_from_alias(_alias: str) -> Union[Target, None]:
+    for target in _targets:
+        if target.alias == _alias:
+            return target
+    return None
+
+
+def get_targets_alias_list() -> list[str]:
+    return [target['alias'] for target in _get_target_accounts_data()]
+
+
+def get_usd_balance_from_alias(alias: str) -> int:
+    for target in _targets:
+        if target.alias == alias:
+            return target.usd_balance
+    return 0
+
+
+def init() -> None:
     global _targets
 
     print("Initializing targets...")
@@ -36,8 +62,10 @@ def init():
         for user in _get_target_accounts_data()
     ]
 
+    print("Targets ready.")
 
-def watch_targets(report_empty: bool = False):
+
+def watch_targets(report_empty: bool = False) -> list:
     global _targets
     if not len(_targets):
         init()
@@ -47,10 +75,21 @@ def watch_targets(report_empty: bool = False):
         target.watch()
 
     Log.sort()
-    updates = Log.get_log(report_empty)
+    updates_str = Log.get_log_str(report_empty)
+    print(updates_str)
+
+    updates = Log.get_log()
     Log.clear()
-    print(updates)
+
     return updates
+
+
+def watch_target(target_alias: str) -> list:
+    target = get_target_from_alias(target_alias)
+    target.watch()
+    Log.sort()
+
+    return Log.get_log()
 
 
 def main():

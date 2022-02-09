@@ -45,6 +45,7 @@ class NewTargetAlert(TokenAlert):
     token_list: list = field(compare=False)
     # needed for sorting:
     chain_id: str = field(init=False, repr=False, default='')
+    action: str = field(init=False, repr=False, default='new')
 
     def __post_init__(self):
         self.priority = 90
@@ -61,6 +62,7 @@ class USDBalanceAlert(TokenAlert):
     balance: int = field(compare=False)
     # needed for sorting:
     chain_id: str = field(init=False, repr=False, default='')
+    action: str = field(init=False, repr=False, default='usd_balance')
 
     def __post_init__(self):
         self.priority = 5
@@ -75,10 +77,11 @@ class RemovedAlert(TokenAlert):
     """
     symbol: str
     amount: str = field(repr=False)
+    action: str = field(init=False, repr=False, default='removed')
 
     def __post_init__(self):
         self.priority = 10
-        self.msg = (f'Token removed: {self.symbol} (on {self.chain_id}). '
+        self.msg = (f'Token removed: **{self.symbol}** (on *{self.chain_id}*). '
                     f'Previous balance: {self.amount}')
 
 
@@ -89,10 +92,11 @@ class AddedAlert(TokenAlert):
     """
     symbol: str
     amount: str = field(repr=False, compare=False)
+    action: str = field(init=False, repr=False, default='added')
 
     def __post_init__(self):
         self.priority = 20
-        self.msg = f'New token: {self.symbol} (on {self.chain_id}). Balance: {self.amount}'
+        self.msg = f'New token: **{self.symbol}** (on *{self.chain_id}*). Balance: {self.amount}'
 
 
 @dataclass
@@ -103,10 +107,11 @@ class ChangedAlert(TokenAlert):
     symbol: str
     amount_previous: str = field(compare=False)
     amount_new: str = field(compare=False)
+    action: str = field(init=False, repr=False, default='changed')
 
     def __post_init__(self):
         self.priority = 30
-        self.msg = (f'Balance changed for {self.symbol} (on {self.chain_id}): '
+        self.msg = (f'Balance changed for **{self.symbol}** (on *{self.chain_id}*): '
                     f'from {self.amount_previous} to {self.amount_new}')
 
 
@@ -124,7 +129,16 @@ class AlertLog:
         print(AlertLog.get_log(True))
 
     @staticmethod
-    def get_log(report_empty: bool = False):
+    def get_log() -> list:
+        return _log
+
+    @staticmethod
+    def get_log_str(report_empty: bool = False) -> str:
+        """
+        Get log alerts.
+        :param report_empty: If it should return a message when log is empty.
+        :return: All alerts in a str
+        """
         if len(_log) == 0:
             return 'No updates to report yet.' if report_empty else False
 
@@ -251,7 +265,7 @@ def _add_alert(action: str, target, chain_id: str, symbol: str, token_data: dict
         _add_alert_changed_token(chain_id, symbol, target, token_data)
 
 
-def _add_alert_changed_token(chain_id, symbol, target, token_data):
+def _add_alert_changed_token(chain_id: str, symbol: str, target, token_data: dict):
     if (
             _is_probably_gas_spent(symbol, token_data['old_value'], token_data['new_value']) or
             not has_changed_by_min_pc(token_data['old_value'], token_data['new_value'])
