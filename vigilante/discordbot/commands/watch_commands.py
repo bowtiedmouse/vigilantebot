@@ -4,9 +4,8 @@ from discord.commands import slash_command
 from discord.commands import Option
 import discord
 
-import vigilante
 from discordbot.settings import GUILD_IDS, ADMIN_ROLES, TARGETS_LIST
-from discordbot import processes as p
+from ..processes import watch_processes as wp
 
 
 class WatchCommands(commands.Cog):
@@ -28,7 +27,7 @@ class WatchCommands(commands.Cog):
 
         If no target selected, will report regularly.
         """
-        return await p.watch_targets(ctx, target)
+        return await wp.watch_targets(ctx, target)
 
     # /stop
     @slash_command(name='stop', guild_ids=GUILD_IDS, default_permission=False)
@@ -38,28 +37,4 @@ class WatchCommands(commands.Cog):
         """
         Stop watching activity.
         """
-        return await p.stop_watching(ctx)
-
-    # TODO: /subscribe <address or alias> <token>: Tags or DM the caller when the target has
-    #  activity on that token.
-    @slash_command(name='dmme', guild_ids=GUILD_IDS)
-    async def send_dm(self, ctx: discord.ApplicationContext):
-        return await ctx.interaction.user.send('Hello')
-
-    @send_dm.error
-    async def send_dm_error(self, ctx, error):
-        # if isinstance(error, discord.commands.errors.ApplicationCommandInvokeError):
-        return await ctx.respond('Error DM')
-
-    # TODO: /subscribe <token>: Tags or DM the caller when there's activity on a token by ANY target.
-
-    # TODO: /list: Shows the list of current targets
-    @slash_command(name='list', guild_ids=GUILD_IDS)
-    async def show_targets_list(self, ctx: discord.ApplicationContext):
-        """
-        Show the list of all watched targets.
-        """
-        targets_list = ', '.join(vigilante.get_targets_alias_list())
-        return await ctx.respond("I'm currently watching these targets:\n"
-                                 f"**{targets_list}**."
-                                 "\nAdmins can add more with the `add_target` command.")
+        return await wp.stop_watching(ctx)

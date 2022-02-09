@@ -126,7 +126,7 @@ class AlertLog:
 
     @staticmethod
     def log():
-        print(AlertLog.get_log(True))
+        print(AlertLog.get_log())
 
     @staticmethod
     def get_log() -> list:
@@ -243,7 +243,7 @@ def _log_diff_results(target, diff_results: dict, action: str):
             symbol = path_keys[2]
             _add_alert(action, target, chain_id, symbol, token_data)
         except IndexError:
-            # It's a new chain, matching 'root['ftm']': { tokens... }
+            # It's a new chain, so it match 'root['ftm']': { tokens... }
             _log_diff_results_new_chain('added', chain_id, target, token_data)
 
 
@@ -293,4 +293,18 @@ def _add_alert_added_token(chain_id, symbol, target, token_data):
 
 
 def _is_probably_gas_spent(symbol: str, amount: float, new_amount: float = 0):
-    return symbol in settings.GAS_TOKENS and abs(amount - new_amount) < 1
+    """
+    Allow ignoring small changes in the chain's gas token, so it doesn't update on changes of gas
+    spent on transactions.
+
+    :param symbol: Token symbol
+    :param amount: Token amount (or old_value on change alerts)
+    :param new_amount: Used for change alerts, when both old_value and new_value are set
+    :return:
+    """
+    try:
+        amount = float(amount)
+        new_amount = float(new_amount)
+        return symbol in settings.GAS_TOKENS and abs(amount - new_amount) < 1
+    except TypeError:
+        return True
