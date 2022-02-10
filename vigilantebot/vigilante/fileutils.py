@@ -1,5 +1,9 @@
 import os
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_empty_json_file(file: str):
@@ -31,7 +35,7 @@ def update_file_key(file: str, primary_key: str, content, secondary_key: str = "
             json.dump(file_data, f, indent=2)
 
     except FileNotFoundError:
-        print(f"File not found: {file}. Couldn't update it.")
+        logger.warning(f"File not found: {file}. Couldn't update it.")
         raise
 
 
@@ -41,12 +45,12 @@ def get_file_key_content(file: str, primary_key: str, secondary_key: str = ""):
     try:
         key_content = _get_key_content(file, primary_key, secondary_key)
     except FileNotFoundError:
-        print(f"File not found: {file}. Creating it...")
+        logger.info(f"File not found: {file}. Creating it...")
         create_empty_json_file(file)
     except KeyError:
-        print(f"{primary_key} not found in {file}.")
+        logger.warning(f"{primary_key} not found in {file}.")
     except json.decoder.JSONDecodeError:
-        print("File is empty or malformed. Will be restored.")
+        logger.warning("File is empty or malformed. Will be restored.")
         create_empty_json_file(file)
 
     return key_content
