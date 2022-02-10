@@ -1,14 +1,20 @@
 from os.path import isfile
 from typing import Union
 import json
-# import logging
+import logging
 
 from vigilante.settings import TARGET_ACCOUNTS_FILE
 from vigilante.holdings import holdings_file_exists, create_holdings_file
 from vigilante.target import Target
 from vigilante.alerts import AlertLog as Log
 
-# logger = logging.getLogger(__name__)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='logs/vigilante.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+# logging.disable(logging.DEBUG)
 
 # list of Targets to watch
 _targets = []
