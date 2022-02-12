@@ -153,12 +153,15 @@ def get_user_subscriptions_list(user_id: int) -> list:
 
 async def unsubscribe_user(ctx: discord.ApplicationContext):
     user_subs = get_user_subscriptions_list(ctx.interaction.user.id)
+    if not user_subs:
+        ctx.respond("You don't have any active subscription yet. Add one with `/subscribe` command.")
+
     await ctx.defer()
     # Show the dropdown and wait for user's choice
     return await select_multiple_options(
         ctx,
         select_options=user_subs,
-        message="Which subscriptions do you want to cancel?",
+        message="Which subscription(s) do you want to cancel?",
         callback_fn=unsubscribe_user_from_selected_options
     )
 

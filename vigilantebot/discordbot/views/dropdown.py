@@ -12,7 +12,7 @@ class SelectMultiple(discord.ui.Select):
             placeholder="You can choose multiple options",
             min_values=1,
             max_values=len(options),
-            options=options,
+            options=options
         )
         self.callback_fn = callback_fn
 
