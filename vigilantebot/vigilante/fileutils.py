@@ -2,7 +2,6 @@ import os
 import json
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -54,6 +53,32 @@ def get_file_key_content(file: str, primary_key: str, secondary_key: str = ""):
         create_empty_json_file(file)
 
     return key_content
+
+
+def get_file_dict(file: str) -> dict:
+    file_dict = {}
+    try:
+        with open(file, "r") as f:
+            file_dict = json.load(f)
+    except FileNotFoundError:
+        logger.info(f"File not found: {file}.")
+    except json.decoder.JSONDecodeError:
+        logger.warning("File is empty or malformed.")
+
+    return file_dict
+
+
+# def get_file_keys(file: str) -> list:
+#     file_keys = []
+#     try:
+#         with open(file, "r") as f:
+#             file_keys = list(json.load(f).keys())
+#     except FileNotFoundError:
+#         logger.info(f"File not found: {file}.")
+#     except json.decoder.JSONDecodeError:
+#         logger.warning("File is empty or malformed.")
+#
+#     return file_keys
 
 
 def _get_key_content(file: str, primary_key: str, secondary_key: str):

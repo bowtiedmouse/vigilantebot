@@ -11,19 +11,28 @@ import discord
 
 from discordbot.discord_settings import SUBSCRIPTIONS_FILE
 from vigilante import fileutils
-from discordbot.controllers import dm_helper as dm
+from discordbot.utils import dm_utils as dm
 from discordbot.views.confirm import confirm_action
+from discordbot.views.dropdown import select_multiple_options
+from discordbot.utils import embed_utils as emb
 
 logger = logging.getLogger(__name__)
 
 
-async def subscribe_user(ctx: discord.ApplicationContext, target_alias: str, token_symbol: str):
+async def subscribe_user(
+        ctx: discord.ApplicationContext,
+        target_alias: str,
+        token_symbol: str
+):
     if not await dm.can_dm_user(ctx.interaction.user):
         await ctx.respond(
             f"Hey {ctx.interaction.user.mention}, "
             "looks like you don't allow DMs from this server.\n"
             "Please, allow DMs first and retry to `/subscribe`.",
-            ephemeral=True)
+            ephemeral=True,
+            file=discord.File(fp="discordbot/resources/shall-not-pass.gif",
+                              filename="shall-not-pass.gif")
+        )
 
     if target_alias and token_symbol:
         return await subscribe_user_to_target_token(ctx, target_alias, token_symbol.upper())
@@ -70,18 +79,26 @@ async def subscribe_user_to_token(ctx: discord.ApplicationContext, token_symbol:
     await add_subscription(ctx.interaction.user.id, 'tokens', token_symbol)
 
 
-async def subscribe_user_to_target_token(ctx: discord.ApplicationContext, target_alias: str,
-                                         token_symbol: str):
+async def subscribe_user_to_target_token(
+        ctx: discord.ApplicationContext,
+        target_alias: str,
+        token_symbol: str
+):
     confirmed = await get_subscription_confirmation(
         ctx, target_alias + ' movements on ' + token_symbol,
         f"Read. I'll DM you any **{target_alias}** movements on **{token_symbol}**.")
     if not confirmed:
         return
 
-    await add_subscription(ctx.interaction.user.id, 'target_tokens', target_alias + '_' + token_symbol)
+    await add_subscription(ctx.interaction.user.id, 'target_tokens',
+                           target_alias + '_' + token_symbol)
 
 
-async def get_subscription_confirmation(ctx, subscription_subject: str, confirmed_msg: str) -> bool:
+async def get_subscription_confirmation(
+        ctx: discord.ApplicationContext,
+        subscription_subject: str,
+        confirmed_msg: str
+) -> bool:
     await ctx.defer()
     confirmed = await confirm_action(
         ctx,
@@ -98,13 +115,16 @@ async def get_subscription_confirmation(ctx, subscription_subject: str, confirme
 
 
 async def show_subscriptions(ctx: discord.ApplicationContext):
-    subs_list = get_user_subscriptions_list(ctx.interaction.user.id)
-    return ctx.respond(f"You're receiving updates for:\n**{', '.join(subs_list)}**."
-                       "\nYou can unsubscribe with the `unsubscribe` command.")
+    subs_list = [sub['description'] for sub in get_user_subscriptions_list(ctx.interaction.user.id)]
+    return await ctx.respond(f"You're receiving updates for:\n**{', '.join(subs_list)}**."
+                             "\nYou can cancel any subscription with the `unsubscribe` command.")
 
 
-# TODO: On updates: check if token/target/target_token exists on file and DM list of users
-async def add_subscription(user_id: int, subs_category: str, subs_subject: str):
+async def add_subscription(
+        user_id: int,
+        subs_category: str,
+        subs_subject: str
+):
     subs_data = list(
         fileutils.get_file_key_content(SUBSCRIPTIONS_FILE, subs_category, subs_subject))
     if not subs_data:
@@ -117,12 +137,120 @@ async def add_subscription(user_id: int, subs_category: str, subs_subject: str):
 
 
 def get_user_subscriptions_list(user_id: int) -> list:
-    return ['ETH token', 'DeFiGod movements', 'Tetranode ETH movements']
+    user_subscriptions = []
+    subs_data = fileutils.get_file_dict(SUBSCRIPTIONS_FILE)
+
+    for category in subs_data.keys():
+        suffix = ' token' if category == 'tokens' else ' movements'
+
+        for key, subscribers in subs_data[category].items():
+            desc = key.replace('_', '\'s ') + suffix
+            if user_id in subscribers:
+                user_subscriptions.append({'label': key, 'description': desc})
+
+    return user_subscriptions
 
 
-def unsubscribe_user(ctx: discord.ApplicationContext):
-    return None
+async def unsubscribe_user(ctx: discord.ApplicationContext):
+    user_subs = get_user_subscriptions_list(ctx.interaction.user.id)
+    await ctx.defer()
+    # Show the dropdown and wait for user's choice
+    return await select_multiple_options(
+        ctx,
+        select_options=user_subs,
+        message="Which subscriptions do you want to cancel?",
+        callback_fn=unsubscribe_user_from_selected_options
+    )
+
+
+# This is the callback from the dropdown component
+async def unsubscribe_user_from_selected_options(
+        interaction: discord.Interaction,
+        values: list
+):
+    await interaction.response.send_message(f"hey : {', '.join(values)}", ephemeral=True)
     # remove subs_subject if empty
+    # todo: actually unsubscribe users
+
+
+# def get_active_subscriptions() -> list:
+#     subs_data = fileutils.get_file_dict(SUBSCRIPTIONS_FILE)
+#     return [subject for content in subs_data.values() for subject in list(content.keys())]
+
+
+# TODO: an improved version should send the same update only once (ex. if user is subscribed to
+#  a target, a token, and for that target-token combination, will receive the same updates 3 times.
+#  Or even if he is subscribed to a target and a token, and that target had movement on that token,
+#  he will receive the same message twice.
+async def report_updates_to_subscribers(
+        ctx: discord.ApplicationContext,
+        updates: dict
+) -> None:
+    subscriptions = fileutils.get_file_dict(SUBSCRIPTIONS_FILE)
+
+    await report_target_updates_to_subscribers(ctx, subscriptions, updates)
+    await report_token_updates_to_subscribers(ctx, subscriptions, updates)
+    await report_target_token_updates_to_subscribers(ctx, subscriptions, updates)
+
+
+async def report_target_token_updates_to_subscribers(
+        ctx: discord.ApplicationContext,
+        subscriptions: dict,
+        updates: dict
+):
+    for target_token in subscriptions['target_tokens'].keys():
+        sub_target, sub_token = target_token.split('_')
+        for up_target_data in updates.values():
+            if sub_target == up_target_data['alias'] and sub_token in up_target_data['content']:
+                await send_update_to_subscriber(
+                    user=ctx.interaction.user,
+                    updated_key=target_token,
+                    target_updates_data=up_target_data
+                )
+
+
+async def report_token_updates_to_subscribers(
+        ctx: discord.ApplicationContext,
+        subscriptions: dict,
+        updates: dict
+):
+    for token in subscriptions['tokens'].keys():
+        for target_data in updates.values():
+            if token in target_data['content']:
+                # The name of the token is in the long message in `content`
+                await send_update_to_subscriber(
+                    user=ctx.interaction.user,
+                    updated_key=token,
+                    target_updates_data=updates[target_data['alias']]
+                )
+
+
+async def report_target_updates_to_subscribers(
+        ctx: discord.ApplicationContext,
+        subscriptions: dict,
+        updates: dict
+):
+    for target in subscriptions['targets'].keys():
+        if target in updates:
+            await send_update_to_subscriber(
+                user=ctx.interaction.user,
+                updated_key=target,
+                target_updates_data=updates[target]
+            )
+
+
+async def send_update_to_subscriber(
+        user: discord.User,
+        updated_key: str,
+        target_updates_data: dict
+):
+    try:
+        return await user.send(
+            f"Hey {user.display_name}! I have some news on **{updated_key}** for you:",
+            embed=emb.create_update_report_embed(target_updates_data))
+    except KeyError as e:
+        logger.error('KeyError %s when sending %s updates with data %s',
+                     e, updated_key, target_updates_data)
 
 
 def create_subscriptions_file() -> None:
