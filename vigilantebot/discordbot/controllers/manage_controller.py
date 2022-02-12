@@ -4,8 +4,14 @@
 #   /remove_target <target_alias>
 #   /list
 
-import vigilante
+from discordbot.discord_settings import TARGETS_LIST
+from vigilante import get_addresses_from_alias
 
 
-def get_targets_alias_list():
-    return vigilante.get_targets_alias_list()
+def get_targets_alias_list_with_addresses():
+    targets_w_addresses = []
+    for target_alias in TARGETS_LIST:
+        addresses = get_addresses_from_alias(target_alias)
+        targets_w_addresses.append(f"**{target_alias}** (*{', '.join(addresses)}*)")
+
+    return targets_w_addresses

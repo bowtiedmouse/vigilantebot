@@ -31,7 +31,7 @@ def format_log(alerts_log) -> dict:
         if last_alias != alert.target_alias:
             updates[alert.target_alias] = {
                 'alias': alert.target_alias,
-                'address': vigilante.get_address_from_alias(alert.target_alias),
+                'address': vigilante.get_addresses_from_alias(alert.target_alias)[0],
                 'balance': '',
                 'content': '',
             }
@@ -68,7 +68,7 @@ def create_update_report_embed(target_updates: dict) -> discord.Embed:
         inline=False)
 
     embed.set_footer(
-        text="Disclaimer: balances in the target's wallet can change b/c of (un)staking, "
+        text="Data from DeBank. Balances in target's wallet can change b/c of (un)staking, "
              "claiming, and other activities.")
 
     return embed

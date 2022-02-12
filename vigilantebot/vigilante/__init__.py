@@ -21,7 +21,7 @@ _targets = []
 
 
 def _get_target_accounts_data() -> dict:
-    assert isfile(TARGET_ACCOUNTS_FILE), "Need some accounts to watch!"
+    assert isfile(TARGET_ACCOUNTS_FILE), "No target accounts found. Need some accounts to watch!"
 
     try:
         with open(TARGET_ACCOUNTS_FILE, "r") as f:
@@ -32,11 +32,11 @@ def _get_target_accounts_data() -> dict:
         print(f"{TARGET_ACCOUNTS_FILE} file is malformed: {e}")
 
 
-def get_address_from_alias(_alias: str) -> str:
+def get_addresses_from_alias(_alias: str) -> list:
     for _target in _targets:
         if _target.alias == _alias:
-            return _target.addresses[0]
-    return ''
+            return _target.addresses
+    return []
 
 
 def get_target_from_alias(_alias: str) -> Union[Target, None]:
