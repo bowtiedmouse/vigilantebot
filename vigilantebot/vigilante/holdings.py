@@ -2,28 +2,37 @@
 #   Functions to interact with the holdings saved data and compare it with updated
 #   data from the blockchain
 #
-import json
-from os.path import isfile
 
-# todo: replace for aiohttp
+# todo: replace requests for aiohttp
 # async with aiohttp.ClientSession() as session:
 #     async with session.get('http://aws.random.cat/meow') as r:
 #         if r.status == 200:
 #             js = await r.json()
 #             await channel.send(js['file'])
-import requests
 
+from os.path import isfile
+import json
+import logging
+
+import requests
 from deepdiff import DeepDiff
 
 from vigilante import settings
 from vigilante import fileutils
+
+logger = logging.getLogger(__name__)
 
 
 def has_min_token_balance(token: json) -> bool:
     """
     Avoids including dust left in the wallet.
     """
-    return token['amount'] * token['price'] >= settings.MIN_TOKEN_BALANCE
+    try:
+        return token['amount'] * token['price'] >= settings.MIN_TOKEN_BALANCE
+    except TypeError as e:
+        print('Error: ', token)
+        logger.error("%s attempting %s * %s", e, token['amount'], token['price'])
+        return False
 
 
 def has_changed_by_min_pc(new_value: float, old_value: float) -> bool:
