@@ -9,7 +9,7 @@ import logging
 from discord.ext import tasks
 import discord
 
-from discordbot.discord_settings import WATCH_FREQUENCY_MINUTES
+from discordbot.discord_settings import WATCH_FREQUENCY_SECONDS
 from discordbot.utils import embed_utils as emb
 from discordbot.controllers import subscribe_controller as sc
 import vigilante
@@ -38,7 +38,7 @@ async def watch_targets(
     await ctx.defer()
 
     if _is_watch_updating:
-        return await ctx.respond("I'm on it, will report updates if any soon.")
+        return await ctx.respond("I'm on it! If there are updates I'll report soon™.")
 
     if target_alias:
         return await watch_one_target(ctx, target_alias)
@@ -54,7 +54,7 @@ async def watch_targets(
     return await watch_all_targets_task.start(ctx)
 
 
-@tasks.loop(minutes=WATCH_FREQUENCY_MINUTES)
+@tasks.loop(seconds=WATCH_FREQUENCY_SECONDS)
 async def watch_all_targets_task(ctx: discord.ApplicationContext):
     """
     Main watch task. Will watch all targets in the list and report embeds when there are updates.

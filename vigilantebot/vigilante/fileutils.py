@@ -46,8 +46,6 @@ def get_file_key_content(file: str, primary_key: str, secondary_key: str = ""):
     except FileNotFoundError:
         logger.info(f"File not found: {file}. Creating it...")
         create_empty_json_file(file)
-    except KeyError:
-        logger.warning(f"{primary_key} not found in {file}.")
     except json.decoder.JSONDecodeError:
         logger.warning("File is empty or malformed. Will be restored.")
         create_empty_json_file(file)
@@ -84,8 +82,13 @@ def get_file_dict(file: str) -> dict:
 def _get_key_content(file: str, primary_key: str, secondary_key: str):
     with open(file, "r") as f:
         saved_data = json.load(f)
-        key_content = saved_data[primary_key]
-        if secondary_key:
-            key_content = key_content[secondary_key]
 
-    return key_content
+        try:
+            key_content = saved_data[primary_key]
+            if secondary_key:
+                key_content = key_content[secondary_key]
+            return key_content
+        except KeyError:
+            if primary_key not in saved_data:
+                logger.warning(f"{primary_key} not found in {file}.")
+            return {}
