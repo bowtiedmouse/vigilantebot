@@ -43,14 +43,15 @@ async def select_multiple_options(
     Send a message with a dropdown containing a list of choices and return selected values.
     """
     view = DropdownView(get_select_options(select_options), callback_fn)
-    await ctx.respond(message, view=view, ephemeral=True)
-    # await view.wait()
-    return view.children[0].values
+    return await ctx.respond(message, view=view, ephemeral=True)
 
 
 def get_select_options(options: list):
     return [
         discord.SelectOption(
-            label=option['label'], description=option['description'], emoji="👁‍🗨"
+            label=option['label'],
+            value=option['category'] + '-' + option['label'],
+            description=option['description'],
+            emoji="👁‍🗨",
         )
         for option in options]

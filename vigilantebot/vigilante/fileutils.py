@@ -59,11 +59,19 @@ def get_file_dict(file: str) -> dict:
         with open(file, "r") as f:
             file_dict = json.load(f)
     except FileNotFoundError:
-        logger.info(f"File not found: {file}.")
+        logger.warning(f"File not found: {file}.")
     except json.decoder.JSONDecodeError:
         logger.warning("File is empty or malformed.")
 
     return file_dict
+
+
+def update_file(file: str, content: dict) -> None:
+    try:
+        with open(file, "w") as f:
+            json.dump(content, f, indent=2)
+    except FileNotFoundError:
+        logger.warning(f"File not found: {file}.")
 
 
 # def get_file_keys(file: str) -> list:

@@ -146,7 +146,7 @@ def get_user_subscriptions_list(user_id: int) -> list:
         for key, subscribers in subs_data[category].items():
             desc = key.replace('_', '\'s ') + suffix
             if user_id in subscribers:
-                user_subscriptions.append({'label': key, 'description': desc})
+                user_subscriptions.append({'label': key, 'category': category, 'description': desc})
 
     return user_subscriptions
 
@@ -154,7 +154,8 @@ def get_user_subscriptions_list(user_id: int) -> list:
 async def unsubscribe_user(ctx: discord.ApplicationContext):
     user_subs = get_user_subscriptions_list(ctx.interaction.user.id)
     if not user_subs:
-        ctx.respond("You don't have any active subscription yet. Add one with `/subscribe` command.")
+        return await ctx.respond(
+            "You don't have any active subscription yet. Add one with `/subscribe` command.")
 
     await ctx.defer()
     # Show the dropdown and wait for user's choice
@@ -169,11 +170,30 @@ async def unsubscribe_user(ctx: discord.ApplicationContext):
 # This is the callback from the dropdown component
 async def unsubscribe_user_from_selected_options(
         interaction: discord.Interaction,
-        values: list
+        selected_values: list
 ):
-    await interaction.response.send_message(f"hey : {', '.join(values)}", ephemeral=True)
-    # remove subs_subject if empty
-    # todo: actually unsubscribe users
+    response_msg = []
+    subs_data = fileutils.get_file_dict(SUBSCRIPTIONS_FILE)
+
+    try:
+        for value in selected_values:
+            category, key = value.split('-')
+            response_msg.append('**' + key + '**')
+
+            subs_data[category][key].remove(interaction.user.id)
+            if not subs_data[category][key]:
+                # clear key if empty (no one is subscribed)
+                del subs_data[category][key]
+
+        fileutils.update_file(SUBSCRIPTIONS_FILE, subs_data)
+
+        await interaction.response.send_message(
+            f"I've unsubscribed you from {', '.join(response_msg)}",
+            ephemeral=True)
+    except (KeyError, ValueError):
+        await interaction.response.send_message(
+            "Something went wrong. Try using the `/unsubscribe` command again.",
+            ephemeral=True)
 
 
 # def get_active_subscriptions() -> list:
