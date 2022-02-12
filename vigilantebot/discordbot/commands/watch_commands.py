@@ -35,6 +35,6 @@ class WatchCommands(commands.Cog):
     @permissions.is_owner()
     async def stop_watch(self, ctx: discord.ApplicationContext):
         """
-        Stop watching activity.
+        Stop recurrent watching task.
         """
         return await wc.stop_watching(ctx)

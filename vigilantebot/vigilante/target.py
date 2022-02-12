@@ -1,8 +1,11 @@
 from dataclasses import dataclass, field
+import logging
 
 from vigilante import settings
 from vigilante import holdings
 from vigilante import alerts
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -15,9 +18,12 @@ class Target:
     usd_balance: int = field(init=False)
     holdings: dict = field(init=False)
 
+    # todo: make async
     def watch(self) -> None:
         print(f"Watching {self.alias}...")
+        logger.debug(f'Starting request updates for {self.alias}...')
         self._update()
+        logger.debug('Ended request updates with result %s', self.holdings)
 
         if not holdings.is_target_in_file(self.alias):
             self._save_new_target()
@@ -27,6 +33,7 @@ class Target:
         if holdings_diff:
             self._log_diff(holdings_diff)
             self._update_file()
+            logger.info('Holdings diff for %s: %s', self.alias, holdings_diff)
 
     def _update(self):
         self.holdings = self._get_updated_holdings()
