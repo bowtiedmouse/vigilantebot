@@ -6,7 +6,7 @@ import logging
 from vigilante.settings import TARGET_ACCOUNTS_FILE
 from vigilante.holdings import holdings_file_exists, create_holdings_file
 from vigilante.target import Target
-from vigilante.alerts import AlertLog as Log
+from vigilante.alerts import get_alert_log, get_alert_log_str, clear_alert_log, sort_alert_log
 
 
 logger = logging.getLogger(__name__)
@@ -82,12 +82,12 @@ def watch_targets(report_empty: bool = False) -> list:
     for _target in _targets:
         _target.watch()
 
-    Log.sort()
-    updates_str = Log.get_log_str(report_empty)
+    sort_alert_log()
+    updates_str = get_alert_log_str(report_empty)
     print(updates_str)
 
-    updates = Log.get_log()
-    Log.clear()
+    updates = get_alert_log()
+    clear_alert_log()
 
     return updates
 
@@ -95,9 +95,9 @@ def watch_targets(report_empty: bool = False) -> list:
 def watch_target(target_alias: str) -> list:
     _target = get_target_from_alias(target_alias)
     _target.watch()
-    Log.sort()
+    sort_alert_log()
 
-    return Log.get_log()
+    return get_alert_log()
 
 
 def main():

@@ -29,6 +29,7 @@ class TokenAlert:
     """
     target_alias: str
     chain_id: str
+    symbol: str = field(compare=False)
     priority: int = field(init=False, repr=False)
     msg: str = field(init=False, compare=False, repr=False)
 
@@ -46,6 +47,7 @@ class NewTargetAlert(TokenAlert):
     # needed for sorting:
     chain_id: str = field(init=False, repr=False, default='')
     action: str = field(init=False, repr=False, default='new')
+    symbol: str = field(init=False, repr=False, default='')
 
     def __post_init__(self):
         self.priority = 90
@@ -63,6 +65,7 @@ class USDBalanceAlert(TokenAlert):
     # needed for sorting:
     chain_id: str = field(init=False, repr=False, default='')
     action: str = field(init=False, repr=False, default='usd_balance')
+    symbol: str = field(init=False, repr=False, default='USD')
 
     def __post_init__(self):
         self.priority = 5
@@ -75,7 +78,6 @@ class RemovedAlert(TokenAlert):
     """
     Represents an alert for a token that has disappeared from a target's account.
     """
-    symbol: str
     amount: str = field(repr=False)
     action: str = field(init=False, repr=False, default='removed')
 
@@ -90,7 +92,6 @@ class AddedAlert(TokenAlert):
     """
     Represents an alert for a new token that has been added to a target's account.
     """
-    symbol: str
     amount: str = field(repr=False, compare=False)
     action: str = field(init=False, repr=False, default='added')
 
@@ -104,7 +105,6 @@ class ChangedAlert(TokenAlert):
     """
     Represents an alert for a token that has changed balance in a target's account.
     """
-    symbol: str
     amount_previous: str = field(compare=False)
     amount_new: str = field(compare=False)
     action: str = field(init=False, repr=False, default='changed')
@@ -115,67 +115,63 @@ class ChangedAlert(TokenAlert):
                     f'from {self.amount_previous} to {self.amount_new}')
 
 
-class AlertLog:
+def add_alert(alert: SortableAlert):
+    global _log
+    _log.append(alert)
+
+
+def print_alert_log():
+    print(get_alert_log_str(True))
+
+
+def get_alert_log() -> list:
+    global _log
+    return _log
+
+
+def get_alert_log_str(report_empty: bool = False) -> str:
     """
-    Helps to interact with _log to update, sort or show it.
+    Get log alerts.
+    :param report_empty: If it should return a message when log is empty.
+    :return: All alerts in a str
     """
+    if len(_log) == 0:
+        return 'No updates to report yet.' if report_empty else False
 
-    @staticmethod
-    def add(alert: SortableAlert):
-        _log.append(alert)
+    last_alias = ''
+    message = ''
+    for alert in _log:
+        if last_alias != alert.target_alias:
+            message += f'\nUpdates for **{alert.target_alias}**:\n'
+            last_alias = alert.target_alias
 
-    @staticmethod
-    def log():
-        print(AlertLog.get_log())
+        message += '· ' + alert.log() + '\n'
 
-    @staticmethod
-    def get_log() -> list:
-        return _log
+    return message
 
-    @staticmethod
-    def get_log_str(report_empty: bool = False) -> str:
-        """
-        Get log alerts.
-        :param report_empty: If it should return a message when log is empty.
-        :return: All alerts in a str
-        """
-        if len(_log) == 0:
-            return 'No updates to report yet.' if report_empty else False
 
-        last_alias = ''
-        message = ''
-        for alert in _log:
-            if last_alias != alert.target_alias:
-                message += f'\nUpdates for **{alert.target_alias}**:\n'
-                last_alias = alert.target_alias
+def sort_alert_log():
+    global _log
+    _log = sorted(_log,
+                  key=lambda log_registry: (
+                      log_registry.target_alias,
+                      log_registry.chain_id,
+                      log_registry.priority)
 
-            message += '· ' + alert.log() + '\n'
+                  )
 
-        return message
 
-    @staticmethod
-    def sort():
-        global _log
-        _log = sorted(_log,
-                      key=lambda log_registry: (
-                          log_registry.target_alias,
-                          log_registry.chain_id,
-                          log_registry.priority)
-
-                      )
-
-    @staticmethod
-    def clear():
-        global _log
-        s = shelve.open(settings.LOG_FILE)
-        s['log'] = _log
-        s.close()
-        _log = []
+def clear_alert_log():
+    global _log
+    s = shelve.open(settings.LOG_FILE)
+    s['log'] = _log
+    s.close()
+    _log = []
 
 
 def log_new_target(target_alias: str, balance: float, target_holdings: dict):
     token_list = [token for chain in target_holdings.values() for token in chain]
-    AlertLog.add(NewTargetAlert(target_alias, int(balance), token_list))
+    add_alert(NewTargetAlert(target_alias, int(balance), token_list))
 
 
 def log_target_holdings_diff(target, diff: dict) -> None:
@@ -202,7 +198,7 @@ def log_target_usd_balance(target_alias: str, balance: int) -> None:
     :param balance: USD balance
     :return: None
     """
-    AlertLog.add(USDBalanceAlert(target_alias, balance))
+    add_alert(USDBalanceAlert(target_alias, balance))
 
 
 def _log_diff_results(target, diff_results: dict, action: str):
@@ -256,7 +252,7 @@ def _add_alert(action: str, target, chain_id: str, symbol: str, token_data: dict
     assert action in {'removed', 'added', 'changed'}, 'Wrong action supplied.'
 
     if action == 'removed':
-        AlertLog.add(RemovedAlert(target.alias, chain_id, symbol, token_data['amount']))
+        add_alert(RemovedAlert(target.alias, chain_id, symbol, token_data['amount']))
 
     elif action == 'added':
         _add_alert_added_token(chain_id, symbol, target, token_data)
@@ -272,7 +268,7 @@ def _add_alert_changed_token(chain_id: str, symbol: str, target, token_data: dic
     ):
         return
 
-    AlertLog.add(
+    add_alert(
         ChangedAlert(
             target.alias,
             chain_id, symbol,
@@ -289,7 +285,7 @@ def _add_alert_added_token(chain_id, symbol, target, token_data):
     portfolio_pc = get_token_pc_of_portfolio(token_data, target)
     if portfolio_pc > settings.MIN_PORTFOLIO_PC:
         added_alert.msg += f' ({portfolio_pc}% of portfolio)'
-    AlertLog.add(added_alert)
+    add_alert(added_alert)
 
 
 def _is_probably_gas_spent(symbol: str, amount: float, new_amount: float = 0):
