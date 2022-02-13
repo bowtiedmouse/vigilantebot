@@ -4,7 +4,7 @@ from discord.commands import slash_command
 from discord.commands import Option
 import discord
 
-from discordbot.discord_settings import GUILD_IDS, ADMIN_ROLES, TARGETS_LIST
+from discordbot.discord_settings import ADMIN_ROLES, TARGETS_LIST
 from discordbot.controllers import watch_controller as wc
 
 
@@ -17,7 +17,7 @@ class WatchCommands(commands.Cog):
         self.bot = _bot
 
     # /watch [target_alias]
-    @slash_command(name='watch', guild_ids=GUILD_IDS)
+    @slash_command(name='watch')
     async def watch(self, ctx: discord.ApplicationContext,
                     target: Option(str, '(Optional) Choose a target',
                                    choices=TARGETS_LIST, default='')
@@ -30,7 +30,7 @@ class WatchCommands(commands.Cog):
         return await wc.watch_targets(ctx, target)
 
     # /stop
-    @slash_command(name='stop', guild_ids=GUILD_IDS, default_permission=False)
+    @slash_command(name='stop', default_permission=False)
     @permissions.has_any_role(*ADMIN_ROLES)
     @permissions.is_owner()
     async def stop_watch(self, ctx: discord.ApplicationContext):

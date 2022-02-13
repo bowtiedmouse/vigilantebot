@@ -17,7 +17,7 @@ class ManageTargetsCommands(commands.Cog):
         self.bot = _bot
 
     # /add_target <address> <alias>
-    @slash_command(name='add_target', guild_ids=GUILD_IDS, default_permission=False)
+    @slash_command(name='add_target', default_permission=False)
     @permissions.has_any_role(*ADMIN_ROLES)
     @permissions.is_owner()
     async def add_target_command(
@@ -36,7 +36,7 @@ class ManageTargetsCommands(commands.Cog):
         return await mc.add_new_target(ctx, alias, address)
 
     # /remove_target
-    @slash_command(name='remove_target', guild_ids=GUILD_IDS, default_permission=False)
+    @slash_command(name='remove_target', default_permission=False)
     @permissions.has_any_role(*ADMIN_ROLES)
     @permissions.is_owner()
     async def remove_target_command(
@@ -52,7 +52,7 @@ class ManageTargetsCommands(commands.Cog):
         return await mc.remove_target(ctx, target_alias)
 
     # /list
-    @slash_command(name='list', guild_ids=GUILD_IDS)
+    @slash_command(name='list')
     async def show_targets_list(self, ctx: discord.ApplicationContext):
         """
         Show the list of all watched targets.
