@@ -1,4 +1,5 @@
 .env
+.idea
 /data_models/
 /target_accounts.json
 /discordbot/examples/
