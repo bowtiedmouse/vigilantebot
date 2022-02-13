@@ -38,11 +38,6 @@ class SubscribeCommands(commands.Cog):
         """
         return await sc.subscribe_user(ctx, target_alias, token_symbol)
 
-    # @subscribe_user_to_updates.error
-    # async def send_dm_error(self, ctx, error):
-    #     # if isinstance(error, discord.commands.errors.ApplicationCommandInvokeError):
-    #     return await ctx.respond('Error DM')
-
     # /my_subscriptions
     @slash_command(name='my_subscriptions', guild_ids=GUILD_IDS)
     async def show_user_subscriptions_list(
@@ -52,7 +47,7 @@ class SubscribeCommands(commands.Cog):
         """
         return await sc.show_subscriptions(ctx)
 
-    # TODO: /unsubscribe: Removes user for some of the subscriptions. Will show Dropdown.
+    # /unsubscribe
     @slash_command(name='unsubscribe', guild_ids=GUILD_IDS)
     async def unsubscribe_user(
             self, ctx: discord.ApplicationContext):

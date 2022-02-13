@@ -47,7 +47,7 @@ def get_target_from_alias(_alias: str) -> Union[Target, None]:
 
 
 def get_targets_alias_list() -> list[str]:
-    return [_target['alias'] for _target in _get_target_accounts_data()]
+    return [_target['alias'] for _target in _get_target_accounts_data().values()]
 
 
 def get_usd_balance_from_alias(alias: str) -> int:
@@ -67,7 +67,7 @@ def init() -> None:
 
     _targets = [
         Target(user["alias"], user["addresses"])
-        for user in _get_target_accounts_data()
+        for user in _get_target_accounts_data().values()
     ]
 
     print("Targets ready.")

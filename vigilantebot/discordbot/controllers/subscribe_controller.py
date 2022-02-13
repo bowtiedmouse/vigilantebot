@@ -3,8 +3,6 @@
 #   /subscribe <target_alias> <target_address>
 #   /unsubscribe
 #   /my_subscriptions
-
-from os.path import isfile
 import logging
 
 import discord
@@ -274,15 +272,3 @@ async def send_update_to_subscriber(
     except KeyError as e:
         logger.error('KeyError %s when sending %s updates with data %s',
                      e, updated_key, target_updates_data)
-
-
-def create_subscriptions_file() -> None:
-    fileutils.create_empty_json_file(SUBSCRIPTIONS_FILE)
-    fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'targets')
-    fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'tokens')
-    fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'target_tokens')
-    print(f'Created file: {SUBSCRIPTIONS_FILE}')
-
-
-def subscriptions_file_exist() -> bool:
-    return isfile(SUBSCRIPTIONS_FILE)

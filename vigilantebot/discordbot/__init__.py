@@ -1,15 +1,16 @@
+from os.path import isfile
 import logging
 
 from discord.ext import commands
 import discord
 
-from discordbot.discord_settings import TOKEN
+from discordbot.discord_settings import TOKEN, SUBSCRIPTIONS_FILE
 from .commands.manage_commands import ManageTargetsCommands
 from .commands.watch_commands import WatchCommands
 from .commands.subscribe_commands import SubscribeCommands
 from .controllers import subscribe_controller as sc
+from vigilante import fileutils
 import vigilante
-
 
 # Pycord logger
 logger = logging.getLogger('discord')
@@ -28,12 +29,24 @@ logger.addHandler(handler)
 bot = discord.Bot()
 
 
+def create_subscriptions_file() -> None:
+    fileutils.create_empty_json_file(SUBSCRIPTIONS_FILE)
+    fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'targets')
+    fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'tokens')
+    fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'target_tokens')
+    print(f'Created file: {SUBSCRIPTIONS_FILE}')
+
+
+def subscriptions_file_exist() -> bool:
+    return isfile(SUBSCRIPTIONS_FILE)
+
+
 def setup(_bot):
     _bot.add_cog(ManageTargetsCommands(_bot))
     _bot.add_cog(WatchCommands(_bot))
     _bot.add_cog(SubscribeCommands(_bot))
-    if not sc.subscriptions_file_exist():
-        sc.create_subscriptions_file()
+    if not subscriptions_file_exist():
+        create_subscriptions_file()
 
 
 def run():

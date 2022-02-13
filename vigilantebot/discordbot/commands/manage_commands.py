@@ -1,6 +1,7 @@
 from discord.ext import commands
 from discord.commands import permissions
 from discord.commands import slash_command
+from discord.commands import Option
 import discord
 
 from discordbot.discord_settings import GUILD_IDS, ADMIN_ROLES, TARGETS_LIST
@@ -15,27 +16,40 @@ class ManageTargetsCommands(commands.Cog):
     def __init__(self, _bot):
         self.bot = _bot
 
-    # todo: uncomment is_owner after testing permissions
-    # TODO: /add_target <address> <alias> [avatar]: @only_admin Adds a new target to the watch list.
+    # /add_target <address> <alias>
     @slash_command(name='add_target', guild_ids=GUILD_IDS, default_permission=False)
     @permissions.has_any_role(*ADMIN_ROLES)
-    # @permissions.is_owner()
-    async def add_target_command(self, ctx: discord.ApplicationContext):
-        await ctx.respond("Add target command!")
-        raise commands.CheckFailure
+    @permissions.is_owner()
+    async def add_target_command(
+            self, ctx: discord.ApplicationContext,
+            alias: Option(
+                str,
+                'Give this target an alias. Ex: Tetranode'),
+            *,
+            address: Option(
+                str,
+                'The addresses for this target (separated by spaces). Ex: 0x9abc123...')
+    ):
+        """
+        Adds a new target to watch.
+        """
+        return await mc.add_new_target(ctx, alias, address)
 
-    # @add_target_command.error
-    # async def add_target_error(self, ctx, error):
-    #     return await ctx.respond(
-    #         error, ephemeral=True
-    #     )  # ephemeral makes "Only you can see this" message
-
-    # TODO: /remove_target <alias>: @only_admin Removes a target from the watch list.
+    # /remove_target
     @slash_command(name='remove_target', guild_ids=GUILD_IDS, default_permission=False)
     @permissions.has_any_role(*ADMIN_ROLES)
     @permissions.is_owner()
-    async def remove_target_command(self, ctx: discord.ApplicationContext):
-        await ctx.respond("Remove target command!")
+    async def remove_target_command(
+            self, ctx: discord.ApplicationContext,
+            target_alias: Option(str,
+                                 '(Optional) Choose a target to remove from the list.',
+                                 choices=TARGETS_LIST,
+                                 default='')
+    ):
+        """
+        Remove a target from the watch list.
+        """
+        return await mc.remove_target(ctx, target_alias)
 
     # /list
     @slash_command(name='list', guild_ids=GUILD_IDS)
@@ -47,3 +61,6 @@ class ManageTargetsCommands(commands.Cog):
         return await ctx.respond("I'm currently watching these targets:\n\n"
                                  f"{targets_list}."
                                  "\n\nAdmins can add more with the `add_target` command.")
+
+    # async def reset_cog(self):
+    #     await bot_utils.reset_bot_cogs(self.bot, self)
