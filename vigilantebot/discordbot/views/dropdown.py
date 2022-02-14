@@ -5,7 +5,7 @@ import discord
 
 class SelectMultiple(discord.ui.Select):
     def __init__(
-            self, options: list[discord.SelectOption],
+            self, options: list,
             callback_fn: Callable[[discord.Interaction, list], Coroutine]
     ):
         super().__init__(
@@ -23,7 +23,7 @@ class SelectMultiple(discord.ui.Select):
 
 class DropdownView(discord.ui.View):
     def __init__(
-            self, options: list[discord.SelectOption],
+            self, options: list,
             callback_fn: Callable[[discord.Interaction, list], Coroutine]
     ):
         super().__init__()
