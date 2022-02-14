@@ -7,7 +7,7 @@ from vigilante.settings import TARGET_ACCOUNTS_FILE
 from vigilante.holdings import holdings_file_exists, create_holdings_file
 from vigilante.target import Target
 from vigilante.alerts import get_alert_log, get_alert_log_str, clear_alert_log, sort_alert_log
-
+from vigilante.fileutils import create_empty_json_file
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -21,7 +21,9 @@ _targets = []
 
 
 def _get_target_accounts_data() -> dict:
-    assert isfile(TARGET_ACCOUNTS_FILE), "No target accounts found. Need some accounts to watch!"
+    if not isfile(TARGET_ACCOUNTS_FILE):
+        create_empty_json_file(TARGET_ACCOUNTS_FILE)
+        logger.error(f"No target accounts found. Creating {TARGET_ACCOUNTS_FILE}")
 
     try:
         with open(TARGET_ACCOUNTS_FILE, "r") as f:
@@ -29,7 +31,7 @@ def _get_target_accounts_data() -> dict:
         return target_accounts_data
 
     except json.decoder.JSONDecodeError as e:
-        print(f"{TARGET_ACCOUNTS_FILE} file is malformed: {e}")
+        logger.error(f"{TARGET_ACCOUNTS_FILE} file is malformed: {e}")
 
 
 def get_addresses_from_alias(_alias: str) -> list:
