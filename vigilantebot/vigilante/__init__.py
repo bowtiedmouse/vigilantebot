@@ -46,7 +46,7 @@ def get_target_from_alias(_alias: str) -> Union[Target, None]:
     return None
 
 
-def get_targets_alias_list() -> list[str]:
+def get_targets_alias_list() -> list:
     return [_target['alias'] for _target in _get_target_accounts_data().values()]
 
 
