@@ -129,7 +129,7 @@ def _compare_holdings(prev: dict, last: dict) -> DeepDiff:
     return DeepDiff(prev,
                     last,
                     verbose_level=2,
-                    exclude_paths=settings.EXCLUDED,
+                    exclude_paths=settings.EXCLUDED_CHAINS,
                     ignore_numeric_type_changes=True,
                     ignore_string_case=True,
                     math_epsilon=0.001,

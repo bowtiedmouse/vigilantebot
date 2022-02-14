@@ -15,4 +15,4 @@ GAS_TOKENS = ['ETH', 'FTM', 'AVAX']
 # optional: &chain_id=eth
 DEBANK_TOKEN_LIST_URL = "https://openapi.debank.com/v1/user/token_list?id={address}&is_all=false"
 DEBANK_ACCOUNT_BALANCE_URL = "https://openapi.debank.com/v1/user/total_balance?id={address}"
-EXCLUDED = ["root['bsc']"]
+EXCLUDED_CHAINS = ["root['bsc']"]

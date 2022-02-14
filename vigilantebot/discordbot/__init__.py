@@ -4,7 +4,7 @@ import logging
 from discord.ext import commands
 import discord
 
-from discordbot.discord_settings import TOKEN, SUBSCRIPTIONS_FILE, GUILD_IDS
+from discordbot.discord_settings import TOKEN, SUBSCRIPTIONS_FILE, DEBUG_GUILD_IDS
 from .commands.manage_commands import ManageTargetsCommands
 from .commands.watch_commands import WatchCommands
 from .commands.subscribe_commands import SubscribeCommands
@@ -26,7 +26,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 # logging.disable(logging.DEBUG)
 
-bot = discord.Bot(debug_guilds=GUILD_IDS)
+bot = discord.Bot(debug_guilds=DEBUG_GUILD_IDS)
 
 
 def create_subscriptions_file() -> None:

@@ -4,7 +4,7 @@ from discord.commands import slash_command
 from discord.commands import Option
 import discord
 
-from discordbot.discord_settings import GUILD_IDS, ADMIN_ROLES, TARGETS_LIST
+from discordbot.discord_settings import ADMIN_ROLES, TARGETS_LIST
 from discordbot.controllers import manage_controller as mc
 
 
