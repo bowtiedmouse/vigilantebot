@@ -79,7 +79,7 @@ def watch_targets(report_empty: bool = False) -> list:
     global _targets
     if not len(_targets):
         logger.warning('Targets are not initialized.')
-        raise
+        return ['no_targets']
 
     print("Starting watch turn...")
     for _target in _targets:

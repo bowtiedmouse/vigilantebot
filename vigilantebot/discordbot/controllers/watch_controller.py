@@ -68,6 +68,9 @@ async def watch_all_targets_task(ctx: discord.ApplicationContext):
     updates = vigilante.watch_targets()
     _is_watch_updating = False
 
+    if updates[0] == 'no_targets':
+        return await ctx.respond("I'm not watching any targets. Admins have to add them first with `add_target`.")
+
     if updates:
         return await report_updates(
             ctx, updates,
