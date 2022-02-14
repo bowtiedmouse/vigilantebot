@@ -30,6 +30,7 @@ def get_targets_alias_list_with_addresses():
     return targets_w_addresses
 
 
+# todo: after add/remove the bot needs to restart
 async def add_new_target(
         ctx: discord.ApplicationContext,
         target_alias: str,
