@@ -3,3 +3,4 @@ requests~=2.26.0
 deepdiff~=5.7.0
 Pillow~=9.0.1
 python-dotenv~=0.16.0
+py-cord~=2.0.0b1
