@@ -1,3 +1,4 @@
+import os
 from os.path import isfile
 import logging
 
@@ -59,6 +60,15 @@ def run():
 async def on_ready():
     print(f'{bot.user.name} is now connected to Discord!')
     vigilante.init()
+
+    guilds = os.getenv('DISCORD_GUILD_IDS').split(',')
+    vigilante_channels_list = [
+        channel for guild in guilds
+        for channel in bot.get_guild(int(guild)).channels
+        if 'vigilante' in channel.name
+    ]
+    for channel in vigilante_channels_list:
+        await channel.send("I'm up and ready for my duty. Please invoke the `/watch` command.")
 
 
 @bot.event

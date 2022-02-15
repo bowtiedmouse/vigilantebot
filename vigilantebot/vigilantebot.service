@@ -1,0 +1,13 @@
+[Unit]
+Description=Vigilante Discord Bot
+
+[Service]
+ExecStart=~/bots/vigilantebot/vigilantebot/run_discord_bot.py
+Restart=always
+TimeoutSec=60
+User=nobody
+Group=nogroup
+WorkingDirectory=~/bots/vigilantebot/vigilantebot
+
+[Install]
+WantedBy=multi-user.target
