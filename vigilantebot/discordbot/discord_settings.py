@@ -3,6 +3,7 @@ import os
 from vigilante import get_targets_alias_list
 
 GUILD_ID = int(os.getenv('DISCORD_GUILD_ID'))
+DEBUG_GUILD_IDS = [int(guild_id) for guild_id in os.getenv('DEBUG_GUILD_IDS')]
 # ALLOWED_CHANNELS = [int(channel) for channel in os.getenv('DISCORD_ALLOWED_CHANNELS').split(',')]
 ADMIN_ROLES = os.getenv('DISCORD_ALLOWED_ROLES').split(',')
 WATCH_FREQUENCY_SECONDS = 4 * 60 + 55

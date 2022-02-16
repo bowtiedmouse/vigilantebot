@@ -4,7 +4,7 @@ import logging
 from discord.ext import commands
 import discord
 
-from discordbot.discord_settings import TOKEN, SUBSCRIPTIONS_FILE, GUILD_ID, PYCORD_LOG_FILE, GUILD_NAME, DISCORDBOT_LOG_FILE, ADMIN_ROLES
+import discordbot.discord_settings as sett
 from .commands.manage_commands import ManageTargetsCommands
 from .commands.watch_commands import WatchCommands
 from .commands.subscribe_commands import SubscribeCommands
@@ -15,31 +15,31 @@ import vigilante
 # Pycord logger
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename=PYCORD_LOG_FILE, encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename=sett.PYCORD_LOG_FILE, encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
 # Discordbot logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename=DISCORDBOT_LOG_FILE, encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename=sett.DISCORDBOT_LOG_FILE, encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 # logging.disable(logging.DEBUG)
 
-bot = discord.Bot(debug_guilds=[GUILD_ID])
+bot = discord.Bot(debug_guilds=[sett.DEBUG_GUILD_IDS])
 
 
 def create_subscriptions_file() -> None:
-    fileutils.create_empty_json_file(SUBSCRIPTIONS_FILE)
-    fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'targets')
-    fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'tokens')
-    fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'target_tokens')
-    logger.info(f'Created file: {SUBSCRIPTIONS_FILE}')
+    fileutils.create_empty_json_file(sett.SUBSCRIPTIONS_FILE)
+    fileutils.create_empty_key_in_file(sett.SUBSCRIPTIONS_FILE, 'targets')
+    fileutils.create_empty_key_in_file(sett.SUBSCRIPTIONS_FILE, 'tokens')
+    fileutils.create_empty_key_in_file(sett.SUBSCRIPTIONS_FILE, 'target_tokens')
+    logger.info(f'Created file: {sett.SUBSCRIPTIONS_FILE}')
 
 
 def subscriptions_file_exist() -> bool:
-    return isfile(SUBSCRIPTIONS_FILE)
+    return isfile(sett.SUBSCRIPTIONS_FILE)
 
 
 def setup(_bot):
@@ -53,7 +53,7 @@ def setup(_bot):
 def run():
     global bot
     setup(bot)
-    bot.run(TOKEN)
+    bot.run(sett.TOKEN)
 
 
 @bot.event
@@ -62,7 +62,7 @@ async def on_ready():
     vigilante.init()
 
     vigilante_channels_list = [
-        channel for channel in bot.get_guild(GUILD_ID).channels
+        channel for channel in bot.get_guild(sett.GUILD_ID).channels
         if 'vigilante' in channel.name
     ]
     for channel in vigilante_channels_list:
