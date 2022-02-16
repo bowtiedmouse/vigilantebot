@@ -4,7 +4,7 @@ import logging
 from discord.ext import commands
 import discord
 
-from discordbot.discord_settings import TOKEN, SUBSCRIPTIONS_FILE, GUILD_ID, DISCORDBOT_LOG_FILE, PYCORD_LOG_FILE
+from discordbot.discord_settings import TOKEN, SUBSCRIPTIONS_FILE, GUILD_ID, PYCORD_LOG_FILE, GUILD_NAME, DISCORDBOT_LOG_FILE, ADMIN_ROLES
 from .commands.manage_commands import ManageTargetsCommands
 from .commands.watch_commands import WatchCommands
 from .commands.subscribe_commands import SubscribeCommands
@@ -19,7 +19,13 @@ handler = logging.FileHandler(filename=PYCORD_LOG_FILE, encoding='utf-8', mode='
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
+# Discordbot logger
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename=DISCORDBOT_LOG_FILE, encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+# logging.disable(logging.DEBUG)
 
 bot = discord.Bot(debug_guilds=[GUILD_ID])
 
@@ -55,12 +61,12 @@ async def on_ready():
     logger.info(f'{bot.user.name} is now connected to Discord!')
     vigilante.init()
 
-    # vigilante_channels_list = [
-    #     channel for channel in bot.get_guild(GUILD_ID).channels
-    #     if 'vigilante' in channel.name
-    # ]
-    # for channel in vigilante_channels_list:
-    #     await channel.send("I'm up and ready for my duty. Please invoke the `/watch` command.")
+    vigilante_channels_list = [
+        channel for channel in bot.get_guild(GUILD_ID).channels
+        if 'vigilante' in channel.name
+    ]
+    for channel in vigilante_channels_list:
+        await channel.send("I'm up and ready for my duty. Please invoke the `/watch` command.")
 
 
 @bot.event
