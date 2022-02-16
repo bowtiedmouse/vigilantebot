@@ -5,7 +5,7 @@
 #   /list
 import discord
 
-from discordbot.discord_settings import TARGETS_LIST
+from discordbot.utils.target_utils import TARGETS_LIST
 from vigilante import get_addresses_from_alias
 from vigilante import fileutils
 from vigilante.settings import TARGET_ACCOUNTS_FILE
@@ -21,10 +21,10 @@ def is_valid_evm_address(address: str):
         return False
 
 
-def get_targets_alias_list_with_addresses():
+def get_targets_alias_list_with_addresses(guild_id: int):
     targets_w_addresses = []
     for target_alias in TARGETS_LIST:
-        addresses = get_addresses_from_alias(target_alias)
+        addresses = get_addresses_from_alias(guild_id, target_alias)
         targets_w_addresses.append(f"**{target_alias}** (*{', '.join(addresses)}*)")
 
     return targets_w_addresses

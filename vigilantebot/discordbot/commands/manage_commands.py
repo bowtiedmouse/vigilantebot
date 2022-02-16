@@ -4,7 +4,8 @@ from discord.commands import slash_command
 from discord.commands import Option
 import discord
 
-from discordbot.discord_settings import ADMIN_ROLES, TARGETS_LIST
+from discordbot.discord_settings import ADMIN_ROLES
+from discordbot.utils.target_utils import TARGETS_LIST
 from discordbot.controllers import manage_controller as mc
 
 
@@ -57,7 +58,7 @@ class ManageTargetsCommands(commands.Cog):
         """
         Show the list of all watched targets.
         """
-        targets_list = '\n\n'.join(mc.get_targets_alias_list_with_addresses())
+        targets_list = '\n\n'.join(mc.get_targets_alias_list_with_addresses(ctx.guild_id))
         return await ctx.respond("I'm currently watching these targets:\n\n"
                                  f"{targets_list}."
                                  "\n\nAdmins can add more with the `add_target` command.")
