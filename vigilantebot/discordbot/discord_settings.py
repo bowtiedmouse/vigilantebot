@@ -1,16 +1,16 @@
 import os
 
-from dotenv import load_dotenv
-
 from vigilante import get_targets_alias_list
 
-load_dotenv()
-
-DEBUG_GUILD_IDS = [int(guild) for guild in os.getenv('DISCORD_GUILD_IDS').split(',')]
+GUILD_ID = int(os.getenv('DISCORD_GUILD_ID'))
 # ALLOWED_CHANNELS = [int(channel) for channel in os.getenv('DISCORD_ALLOWED_CHANNELS').split(',')]
 ADMIN_ROLES = os.getenv('DISCORD_ALLOWED_ROLES').split(',')
 WATCH_FREQUENCY_SECONDS = 4 * 60 + 55
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-SUBSCRIPTIONS_FILE = 'data/subscriptions.json'
+GUILD_NAME = os.getenv('GUILD_NAME').replace(' ', '')
+SUBSCRIPTIONS_FILE = f"data/subscriptions_{GUILD_NAME}.json"
+PYCORD_LOG_FILE = f"logs/discord_{GUILD_NAME}.log"
+DISCORDBOT_LOG_FILE = f"logs/discordbot_{GUILD_NAME}.log"
+
 TARGETS_LIST = get_targets_alias_list()

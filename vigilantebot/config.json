@@ -1,8 +1,0 @@
-{
-  "api_url": "https://openapi.debank.com/v1/user/complex_protocol_list?id={address}",
-  "file": {
-    "name": "wallet_watcher.txt",
-    "fields": [
-    ]
-  }
-}

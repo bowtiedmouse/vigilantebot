@@ -1,11 +1,10 @@
-import os
 from os.path import isfile
 import logging
 
 from discord.ext import commands
 import discord
 
-from discordbot.discord_settings import TOKEN, SUBSCRIPTIONS_FILE, DEBUG_GUILD_IDS
+from discordbot.discord_settings import TOKEN, SUBSCRIPTIONS_FILE, GUILD_ID, DISCORDBOT_LOG_FILE, PYCORD_LOG_FILE
 from .commands.manage_commands import ManageTargetsCommands
 from .commands.watch_commands import WatchCommands
 from .commands.subscribe_commands import SubscribeCommands
@@ -16,18 +15,18 @@ import vigilante
 # Pycord logger
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename=PYCORD_LOG_FILE, encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='logs/discordbot.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename=DISCORDBOT_LOG_FILE, encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 # logging.disable(logging.DEBUG)
 
-bot = discord.Bot(debug_guilds=DEBUG_GUILD_IDS)
+bot = discord.Bot(debug_guilds=[GUILD_ID])
 
 
 def create_subscriptions_file() -> None:
@@ -61,14 +60,12 @@ async def on_ready():
     print(f'{bot.user.name} is now connected to Discord!')
     vigilante.init()
 
-    guilds = os.getenv('DISCORD_GUILD_IDS').split(',')
-    vigilante_channels_list = [
-        channel for guild in guilds
-        for channel in bot.get_guild(int(guild)).channels
-        if 'vigilante' in channel.name
-    ]
-    for channel in vigilante_channels_list:
-        await channel.send("I'm up and ready for my duty. Please invoke the `/watch` command.")
+    # vigilante_channels_list = [
+    #     channel for channel in bot.get_guild(GUILD_ID).channels
+    #     if 'vigilante' in channel.name
+    # ]
+    # for channel in vigilante_channels_list:
+    #     await channel.send("I'm up and ready for my duty. Please invoke the `/watch` command.")
 
 
 @bot.event

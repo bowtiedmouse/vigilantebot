@@ -163,7 +163,7 @@ def sort_alert_log():
 
 def clear_alert_log():
     global _log
-    s = shelve.open(settings.LOG_FILE)
+    s = shelve.open(settings.ALERTS_LOG_FILE)
     s['log'] = _log
     s.close()
     _log = []

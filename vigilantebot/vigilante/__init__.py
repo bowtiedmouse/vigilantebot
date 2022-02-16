@@ -3,7 +3,7 @@ from typing import Union
 import json
 import logging
 
-from vigilante.settings import TARGET_ACCOUNTS_FILE
+from vigilante.settings import TARGET_ACCOUNTS_FILE, VIGILANTE_LOG_FILE
 from vigilante.holdings import holdings_file_exists, create_holdings_file
 from vigilante.target import Target
 from vigilante.alerts import get_alert_log, get_alert_log_str, clear_alert_log, sort_alert_log
@@ -11,7 +11,7 @@ from vigilante.fileutils import create_empty_json_file
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='logs/vigilante.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename=VIGILANTE_LOG_FILE, encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 # logging.disable(logging.DEBUG)
@@ -49,7 +49,7 @@ def get_target_from_alias(_alias: str) -> Union[Target, None]:
 
 
 def get_targets_alias_list() -> list:
-    return [_target['alias'] for _target in _get_target_accounts_data().values()]
+    return [_target['alias'] for _target in _get_target_accounts_data()]
 
 
 def get_usd_balance_from_alias(alias: str) -> int:
@@ -69,7 +69,7 @@ def init() -> None:
 
     _targets = [
         Target(user["alias"], user["addresses"])
-        for user in _get_target_accounts_data().values()
+        for user in _get_target_accounts_data()
     ]
 
     print("Targets ready.")
