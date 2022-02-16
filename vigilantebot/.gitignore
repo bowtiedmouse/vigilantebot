@@ -1,6 +1,5 @@
 .env
 .idea
 /data_models/
-/target_accounts.json
-/discordbot/examples/
+/target_accounts*
 /discordbot/utils/blockies.py
