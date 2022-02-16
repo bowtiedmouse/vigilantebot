@@ -1,10 +1,12 @@
 [Unit]
 Description=Vigilante Discord Bot
+StartLimitIntervalSec=40
+StartLimitBurst=6
 
 [Service]
 ExecStart=/home/bots/vigilantebot/vigilantebot/run_discord_bot.py
-Restart=always
-TimeoutSec=60
+Restart=on-failure
+RestartSec=5
 User=nobody
 Group=nogroup
 WorkingDirectory=/home/bots/vigilantebot/vigilantebot
