@@ -4,7 +4,8 @@ from discord.commands import slash_command
 from discord.commands import Option
 import discord
 
-from discordbot.discord_settings import ADMIN_ROLES, TARGETS_LIST
+from discordbot.discord_settings import ADMIN_ROLES
+from discordbot.utils.target_utils import TARGETS_LIST
 from discordbot.controllers import watch_controller as wc
 
 

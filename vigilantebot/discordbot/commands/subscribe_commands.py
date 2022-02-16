@@ -3,7 +3,7 @@ from discord.commands import slash_command
 from discord.commands import Option
 import discord
 
-from discordbot.discord_settings import TARGETS_LIST
+from discordbot.utils.target_utils import TARGETS_LIST
 from discordbot.controllers import subscribe_controller as sc
 
 
