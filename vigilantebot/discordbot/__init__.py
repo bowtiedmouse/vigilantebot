@@ -20,11 +20,6 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename=DISCORDBOT_LOG_FILE, encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
-# logging.disable(logging.DEBUG)
 
 bot = discord.Bot(debug_guilds=[GUILD_ID])
 
@@ -34,7 +29,7 @@ def create_subscriptions_file() -> None:
     fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'targets')
     fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'tokens')
     fileutils.create_empty_key_in_file(SUBSCRIPTIONS_FILE, 'target_tokens')
-    print(f'Created file: {SUBSCRIPTIONS_FILE}')
+    logger.info(f'Created file: {SUBSCRIPTIONS_FILE}')
 
 
 def subscriptions_file_exist() -> bool:
@@ -57,7 +52,7 @@ def run():
 
 @bot.event
 async def on_ready():
-    print(f'{bot.user.name} is now connected to Discord!')
+    logger.info(f'{bot.user.name} is now connected to Discord!')
     vigilante.init()
 
     # vigilante_channels_list = [

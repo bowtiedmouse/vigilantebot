@@ -62,7 +62,7 @@ def get_usd_balance_from_alias(alias: str) -> int:
 def init() -> None:
     global _targets
 
-    print("Initializing targets...")
+    logger.info("Initializing targets...")
 
     if not holdings_file_exists():
         create_holdings_file()
@@ -72,22 +72,23 @@ def init() -> None:
         for user in _get_target_accounts_data()
     ]
 
-    print("Targets ready.")
+    logger.info("Targets ready.")
 
 
-def watch_targets(report_empty: bool = False) -> list:
+def watch_targets(print_results: bool = False) -> list:
     global _targets
     if not len(_targets):
         logger.warning('Targets are not initialized.')
         return ['no_targets']
 
-    print("Starting watch turn...")
+    logger.info("Starting watch turn...")
     for _target in _targets:
         _target.watch()
 
     sort_alert_log()
-    updates_str = get_alert_log_str(report_empty)
-    print(updates_str)
+    if print_results:
+        updates_str = get_alert_log_str(print_results)
+        print(updates_str)
 
     updates = get_alert_log()
     clear_alert_log()
@@ -105,7 +106,7 @@ def watch_target(target_alias: str) -> list:
 
 def main():
     init()
-    watch_targets(report_empty=True)
+    watch_targets(print_results=True)
 
 
 if __name__ == '__main__':

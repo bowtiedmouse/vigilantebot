@@ -20,10 +20,9 @@ class Target:
 
     # todo: make async
     def watch(self) -> None:
-        print(f"Watching {self.alias}...")
-        logger.debug(f'Starting request updates for {self.alias}...')
+        logger.debug(f'Getting updates for {self.alias}...')
         self._update()
-        logger.debug('Ended request updates with result %s', self.holdings)
+        # logger.debug('Ended request updates with result %s', self.holdings)
 
         if not holdings.is_target_in_file(self.alias):
             self._save_new_target()
@@ -33,7 +32,7 @@ class Target:
         if holdings_diff:
             self._log_diff(holdings_diff)
             self._update_file()
-            logger.info('Holdings diff for %s: %s', self.alias, holdings_diff)
+            # logger.debug('Holdings diff for %s: %s', self.alias, holdings_diff)
 
     def _update(self):
         self.holdings = self._get_updated_holdings()
@@ -62,5 +61,5 @@ class Target:
 
     def _save_new_target(self) -> None:
         alerts.log_new_target(self.alias, self.usd_balance, self.holdings)
-        print(f"{self.alias} holdings will be added to {settings.TARGETS_HOLDINGS_FILE}")
+        logger.info(f"{self.alias} holdings will be added to {settings.TARGETS_HOLDINGS_FILE}")
         self._update_file()
