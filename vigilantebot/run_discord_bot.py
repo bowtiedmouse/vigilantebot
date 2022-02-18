@@ -15,4 +15,4 @@ guild_config.init(args[0])
 
 import discordbot
 
-discordbot.run(int(args[0]))
+discordbot.run()

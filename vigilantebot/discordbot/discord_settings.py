@@ -12,7 +12,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 DEBUG_GUILD_IDS = [int(guild_id) for guild_id in os.getenv('DEBUG_GUILD_IDS').split(',')]
 
 # from config/<guild_id>.json
-# GUILD_ID = guild_config.get_guild_id()
+GUILD_ID = guild_config.get_guild_id()
 # ALLOWED_CHANNELS = guild_config.get_allowed_channels()
 # ADMIN_ROLES = guild_config.get_allowed_roles()
 ADMIN_ROLES = os.getenv('ALLOWED_ROLES').split(',')

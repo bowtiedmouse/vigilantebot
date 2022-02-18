@@ -58,7 +58,7 @@ class ManageTargetsCommands(commands.Cog):
         """
         Show the list of all watched targets.
         """
-        targets_list = '\n\n'.join(mc.get_targets_alias_list_with_addresses(ctx.guild_id))
+        targets_list = '\n\n'.join(mc.get_targets_alias_list_with_addresses())
         return await ctx.respond("I'm currently watching these targets:\n\n"
                                  f"{targets_list}."
                                  "\n\nAdmins can add more with the `add_target` command.")

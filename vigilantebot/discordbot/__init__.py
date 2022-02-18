@@ -27,7 +27,8 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 # logging.disable(logging.DEBUG)
 
-bot = discord.Bot(debug_guilds=[sett.DEBUG_GUILD_IDS])
+# bot = discord.Bot()
+bot = discord.Bot(debug_guilds=sett.DEBUG_GUILD_IDS)
 
 
 def create_subscriptions_file() -> None:

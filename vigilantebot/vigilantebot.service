@@ -4,11 +4,11 @@ StartLimitIntervalSec=40
 StartLimitBurst=6
 
 [Service]
-ExecStart=/home/bots/vigilantebot/vigilantebot/run_discord_bot.py
+ExecStart=/home/bots/start_vigilante.sh
 Restart=on-failure
 RestartSec=5
-User=nobody
-Group=nogroup
+User=root
+Group=root
 WorkingDirectory=/home/bots/vigilantebot/vigilantebot
 
 [Install]
