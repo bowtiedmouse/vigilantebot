@@ -62,10 +62,10 @@ async def save_target_to_file(ctx, addresses, target_alias):
 
 async def check_valid_target(
         ctx: discord.ApplicationContext,
-        saved_targets: dict,
+        saved_targets: list,
         target_alias: str
 ):
-    if target_alias.lower() in map(str.lower, saved_targets.keys()):
+    if target_alias.lower() in map(str.lower, saved_targets):
         await ctx.respond(
             f'*{target_alias.title()}* is already in my targets list.',
             ephemeral=True)

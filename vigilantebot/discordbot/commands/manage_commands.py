@@ -44,8 +44,7 @@ class ManageTargetsCommands(commands.Cog):
             self, ctx: discord.ApplicationContext,
             target_alias: Option(str,
                                  '(Optional) Choose a target to remove from the list.',
-                                 choices=TARGETS_LIST,
-                                 default='')
+                                 choices=TARGETS_LIST)
     ):
         """
         Remove a target from the watch list.

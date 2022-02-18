@@ -31,8 +31,9 @@ def update_file_key(file: str, primary_key: str, content, secondary_key: str = "
             file_data[primary_key][secondary_key] = content
 
         # The default umask is 0o22 which turns off write permission of group and others
-        os.umask(0)
-        with open(os.open(file, os.O_CREAT | os.O_WRONLY, 0o777), "w") as f:
+        # os.umask(0)
+        # with open(os.open(file, os.O_CREAT | os.O_WRONLY, 0o777), "w") as f:
+        with open(file, "w") as f:
             json.dump(file_data, f, indent=2)
 
     except FileNotFoundError:
@@ -70,8 +71,9 @@ def get_file_dict(file: str) -> dict:
 
 def update_file(file: str, content: dict) -> None:
     try:
-        os.umask(0)
-        with open(os.open(file, os.O_CREAT | os.O_WRONLY, 0o777), "w") as f:
+        # os.umask(0)
+        # with open(os.open(file, os.O_CREAT | os.O_WRONLY, 0o777), "w") as f:
+        with open(file, "w") as f:
             json.dump(content, f, indent=2)
     except FileNotFoundError:
         logger.warning(f"File not found: {file}.")
