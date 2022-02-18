@@ -30,7 +30,9 @@ def update_file_key(file: str, primary_key: str, content, secondary_key: str = "
         else:
             file_data[primary_key][secondary_key] = content
 
-        with open(file, "w") as f:
+        # The default umask is 0o22 which turns off write permission of group and others
+        os.umask(0)
+        with open(os.open(file, os.O_CREAT | os.O_WRONLY, 0o777), "w") as f:
             json.dump(file_data, f, indent=2)
 
     except FileNotFoundError:
@@ -68,23 +70,11 @@ def get_file_dict(file: str) -> dict:
 
 def update_file(file: str, content: dict) -> None:
     try:
-        with open(file, "w") as f:
+        os.umask(0)
+        with open(os.open(file, os.O_CREAT | os.O_WRONLY, 0o777), "w") as f:
             json.dump(content, f, indent=2)
     except FileNotFoundError:
         logger.warning(f"File not found: {file}.")
-
-
-# def get_file_keys(file: str) -> list:
-#     file_keys = []
-#     try:
-#         with open(file, "r") as f:
-#             file_keys = list(json.load(f).keys())
-#     except FileNotFoundError:
-#         logger.info(f"File not found: {file}.")
-#     except json.decoder.JSONDecodeError:
-#         logger.warning("File is empty or malformed.")
-#
-#     return file_keys
 
 
 def _get_key_content(file: str, primary_key: str, secondary_key: str):
