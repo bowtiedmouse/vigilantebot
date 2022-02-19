@@ -1,8 +1,11 @@
 from datetime import datetime
+import logging
 
 import discord
 
 import vigilante
+
+logger = logging.getLogger(__name__)
 
 
 def format_log(alerts_log) -> dict:
@@ -51,6 +54,10 @@ def create_update_report_embed(target_updates: dict) -> discord.Embed:
     Creates an Embed with the data of the updates on one target.
     :param target_updates: dict with the content of that target's updates.
     """
+    logger.debug(f"Creating updates Embed with data: {target_updates}")
+    if not target_updates['content']:
+        logger.error(f"Content of the update was empty for {target_updates['alias']}")
+
     embed = discord.Embed(
         title=f"{target_updates['balance']}",
         color=discord.Color.random(seed=target_updates['address']),
