@@ -123,8 +123,14 @@ async def report_updates(
     if target_alias:
         return await ctx.send(embed=emb.create_update_report_embed(alerts_log[target_alias]))
 
-    embeds = [emb.create_update_report_embed(target_updates) for target_updates in alerts_log.values()]
-    return await ctx.send(embeds=embeds)
+    embeds = [
+        emb.create_update_report_embed(target_updates)
+        for target_updates in alerts_log.values()
+        if target_updates['content']
+    ]
+
+    if embeds:
+        return await ctx.send(embeds=embeds)
 
 
 async def stop_watching(ctx: discord.ApplicationContext):

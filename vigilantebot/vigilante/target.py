@@ -18,7 +18,6 @@ class Target:
     usd_balance: int = field(init=False)
     holdings: dict = field(init=False)
 
-    # todo: make async
     def watch(self) -> None:
         logger.debug(f'Getting updates for {self.alias}...')
         self._update()
