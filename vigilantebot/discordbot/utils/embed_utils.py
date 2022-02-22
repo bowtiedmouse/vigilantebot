@@ -69,10 +69,11 @@ def create_update_report_embed(target_updates: dict) -> discord.Embed:
         icon_url=f'https://identicon-api.herokuapp.com/{target_updates["address"]}/100?format=png')
     # If identicon-api shuts down, alternative is utils.blockies.get_blockie()
 
-    embed.add_field(
-        name="Last wallet movements:",
-        value=target_updates['content'],
-        inline=False)
+    if target_updates['content']:
+        embed.add_field(
+            name="Last wallet movements:",
+            value=target_updates['content'],
+            inline=False)
 
     embed.set_footer(
         text="Data from DeBank. Balances in target's wallet can change b/c of (un)staking, "
