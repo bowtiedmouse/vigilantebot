@@ -16,14 +16,14 @@ import vigilante
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename=sett.PYCORD_LOG_FILE, encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s %(name)-10s: %(message)s'))
 logger.addHandler(handler)
 
 # Discordbot logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename=sett.DISCORDBOT_LOG_FILE, encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s %(name)-10s: %(message)s'))
 logger.addHandler(handler)
 # logging.disable(logging.DEBUG)
 
