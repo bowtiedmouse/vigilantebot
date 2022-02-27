@@ -31,7 +31,7 @@ def has_min_token_balance(token: json) -> bool:
         return token['amount'] * token['price'] >= settings.MIN_TOKEN_BALANCE
     except TypeError as e:
         print('Error: ', token)
-        logger.error("%s attempting %s * %s", e, token['amount'], token['price'])
+        logger.error(f"{e} attempting access to {token} by string indices.")
         return False
 
 
