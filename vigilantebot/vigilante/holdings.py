@@ -63,10 +63,12 @@ def get_account_usd_balance(account: str) -> int:
     """
     Gets current account's USD value from Debank API.
     """
-    balance = requests.get(
-        settings.DEBANK_ACCOUNT_BALANCE_URL.format(address=account)
-    ).json()['total_usd_value']
-
+    try:
+        balance = requests.get(
+            settings.DEBANK_ACCOUNT_BALANCE_URL.format(address=account)
+        ).json()['total_usd_value']
+    except Exception:
+        return 0
     return int(round(balance, 0))
 
 
