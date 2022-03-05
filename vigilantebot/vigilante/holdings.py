@@ -87,8 +87,13 @@ def is_target_in_file(target_alias: str) -> bool:
 
 
 def get_token_holdings(target_account: str, target_holdings: dict) -> dict:
-    token_list = _request_token_list(target_account).json()
-    return _process_token_list(target_holdings, token_list)
+    try:
+        token_list = _request_token_list(target_account).json()
+        return _process_token_list(target_holdings, token_list)
+    except Exception as e:
+        logger.error(f'Exception reading the JSON from DeBank: {e}')
+        return {}
+
 
 
 def get_holdings_from_file(target_alias: str) -> dict:
