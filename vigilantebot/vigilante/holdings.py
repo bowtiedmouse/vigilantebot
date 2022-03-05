@@ -95,7 +95,6 @@ def get_token_holdings(target_account: str, target_holdings: dict) -> dict:
         return {}
 
 
-
 def get_holdings_from_file(target_alias: str) -> dict:
     """
     Gets the last saved data for a user.
